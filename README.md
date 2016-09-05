@@ -2,7 +2,7 @@
 
 _A work in progress.  Not really ready for prime time.  This is a pure idea experiment and code may be abandoned in the future._
 
-_[yaps][0] is based on [ruffus][1].  This repository, [yap2][3], is based on a tweaked [COSMOS2][2]._
+_[yaps][0] is based on [ruffus][1].  This repository, [yaps2][3], is based on a tweaked [COSMOS2][2]._
 
 ## Example execution
 
