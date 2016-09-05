@@ -25,7 +25,7 @@ def cli():
               help='An email used to notify about batch jobs [default=userid@genome.wustl.edu]')
 @click.option('--drm', default='lsf', type=click.Choice(['local', 'lsf']),
               help='Job Mode -- [default=lsf]')
-@click.option('--restart/--no-restart', default=False,),
+@click.option('--restart/--no-restart', default=False,
               help='Restart Pipeline from scratch')
 def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
     from yap2.pipelines.postvqsr import Config, Pipeline
