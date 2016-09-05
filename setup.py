@@ -21,8 +21,11 @@ setup(
     author_email='idas@wustl.edu',
     license=license,
     url='https://github.com/indraniel/yaps2',
+    dependency_links=[
+        'https://github.com/indraniel/COSMOS2/tarball/enable-lsf-rebase#egg=cosmos-wfm-2.0.10.indraniel1',
+    ],
     install_requires=[
-        'git+https://github.com/indraniel/COSMOS2.git@enable-lsf',
+        'cosmos-wfm==2.0.10.indraniel1',
         'click',
         'clint',
     ],

@@ -10,7 +10,7 @@ _[yaps][0] is based on [ruffus][1].  This repository, [yaps2][3], is based on a 
 
 ## Deployment
 
-    pip install git+https://github.com/indraniel/yaps2.git
+    pip install --process-dependency-links git+https://github.com/indraniel/yaps2.git
 
 ## Development
 
@@ -18,7 +18,7 @@ _[yaps][0] is based on [ruffus][1].  This repository, [yaps2][3], is based on a 
     cd yaps2
     virtualenv venv
     source venv/bin/activate
-    pip install -e .
+    pip install --process-dependency-links -e .
     # < do development work >
      
     # test
