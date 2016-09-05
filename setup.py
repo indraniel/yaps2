@@ -13,7 +13,7 @@ with open('yaps2/version.py') as f:
     exec(f.read())
 
 setup(
-    name='yaps',
+    name='yaps2',
     version=__version__,
     description='Yet Another Pipeline Setup',
     long_description=readme,
