@@ -183,7 +183,7 @@ class Pipeline(object):
             task = {
                 'func'   : gatk_select_variants_remove_ac_0,
                 'params' : {
-                    'in_chrom' : chrom
+                    'in_chrom' : chrom,
                     'in_vcf' : vcf,
                     'out_vcf' : os.path.join(basedir, chrom, output_vcf),
                     'out_log' : os.path.join(basedir, chrom, output_log),
