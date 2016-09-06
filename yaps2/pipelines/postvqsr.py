@@ -121,6 +121,7 @@ class Pipeline(object):
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
             output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
+            output_stats = '{chrom}.stats.missingness.out'.format(chrom=chrom)
             output_log = 'filter-missingness-{}.log'.format(chrom)
             task = {
                 'func' : filter_missingness,
@@ -128,12 +129,13 @@ class Pipeline(object):
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
                     'out_vcf' : os.path.join(basedir, chrom, output_vcf),
+                    'out_stats' : os.path.join(basedir, chrom, output_stats),
                     'out_log' : os.path.join(basedir, chrom, output_log),
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
                 'drm_params' :
-                    to_json(normalize_decompose_unique_lsf_params(email)),
+                    to_json(filter_missingness_lsf_params(email)),
                 'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
@@ -206,6 +208,24 @@ def annotation_1000G(in_vcf, in_chrom, out_vcf, out_log):
     return cmd
 
 def annotation_1000G_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000] rusage[mem=8000]',
+    }
+
+def filter_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/filter-missingness.sh'),
+    }
+    cmd_args = merge_params(default, args)
+    cmd = "{script} {in_vcf} {out_vcf} {out_stats} 2>&1 >{out_log}".format(**cmd_args)
+    return cmd
+
+def filter_missingness_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
