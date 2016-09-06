@@ -28,7 +28,7 @@ def cli():
 @click.option('--restart/--no-restart', default=False,
               help='Restart Pipeline from scratch')
 def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
-    from yap2.pipelines.postvqsr import Config, Pipeline
+    from yaps2.pipelines.postvqsr import Config, Pipeline
     config = Config(job_db, input_vcfs, project_name, email, workspace)
     workflow = Pipeline(config, drm, restart)
     workflow.run()

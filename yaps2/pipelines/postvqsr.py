@@ -199,7 +199,7 @@ class Pipeline(object):
 def annotation_1000G(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
-        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/annotate-with-1000G.sh'),
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/annotate-w-1000G.sh'),
     }
     cmd_args = merge_params(default, args)
     cmd = "{script} {in_vcf} {out_vcf} 2>&1 >{out_log}".format(**cmd_args)
@@ -246,9 +246,9 @@ def gatk_select_variants_remove_ac_0(in_chrom, in_vcf, out_vcf, out_log):
     cmd = ( "{java} -jar {jar} "
             "-T SelectVariants -R {reference} "
             "--removeUnusedAlternates "
-            "-V {invcf} "
-            "-L {chrom} "
-            "-o {outvcf} "
+            "-V {in_vcf} "
+            "-L {in_chrom} "
+            "-o {out_vcf} "
             "2>&1 "
             ">{out_log}").format(**cmd_args)
 
