@@ -95,7 +95,7 @@ class Pipeline(object):
             output_vcf = '1kg-annotated.c{}.vcf.gz'.format(chrom)
             output_log = '1000G-annotate.{}.log'.format(chrom)
             task = {
-                'func' : filter_missingness,
+                'func' : annotation_1000G,
                 'params' : {
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
