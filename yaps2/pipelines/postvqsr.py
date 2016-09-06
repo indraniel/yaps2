@@ -4,7 +4,7 @@ from cosmos.api import Cosmos, Dependency, default_get_submit_args
 from yaps2.utils import to_json, merge_params, natural_key
 
 class Config(object):
-    def __init__(job_db, input_vcf_list, project_name, email, workspace):
+    def __init__(self, job_db, input_vcf_list, project_name, email, workspace):
         self.email = email
         self.db = job_db
         self.project_name = project_name
@@ -43,7 +43,7 @@ class Config(object):
         return chroms
 
 class Pipeline(object):
-    def __init__(config, drm, restart):
+    def __init__(self, config, drm, restart):
         self.config = config
 
         self.cosmos = Cosmos(
