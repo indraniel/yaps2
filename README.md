@@ -34,5 +34,5 @@ _[yaps][0] is based on [ruffus][1].  This repository, [yaps2][3], is based on a 
 
 [0]: https://github.com/indraniel/yaps
 [1]: http://www.ruffus.org.uk/
-[2]: https://github.com/indraniel/COSMOS2/tree/enable-lsf
+[2]: https://github.com/indraniel/COSMOS2/tree/enable-lsf-rebase
 [3]: https://github.com/indraniel/yaps2
