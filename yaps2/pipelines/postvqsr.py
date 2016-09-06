@@ -249,8 +249,8 @@ def normalize_decompose_unique_lsf_params(email):
         'u' : email,
         'N' : None,
         'q' : "long",
-        'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'M' : 15000000,
+        'R' : 'select[mem>15000] rusage[mem=15000]',
     }
 
 def gatk_select_variants_remove_ac_0(in_chrom, in_vcf, out_vcf, out_log):
