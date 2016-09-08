@@ -84,6 +84,35 @@ class Pipeline(object):
         dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
         filter_missingness_tasks = self.create_filter_missingness_tasks(dnu_tasks)
         annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_missingness_tasks)
+        annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
+
+    def create_ExAC_annotation_tasks(self, parent_tasks):
+        tasks = []
+        stage = '5-annotate-w-ExAC'
+        basedir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        for ptask in parent_tasks:
+            chrom = ptask.params['in_chrom']
+            output_vcf = 'ExAC-annotated.c{}.vcf.gz'.format(chrom)
+            output_log = 'ExAC-annotate.{}.log'.format(chrom)
+            task = {
+                'func' : annotation_1000G,
+                'params' : {
+                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_chrom' : chrom,
+                    'out_vcf' : os.path.join(basedir, chrom, output_vcf),
+                    'out_log' : os.path.join(basedir, chrom, output_log),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=chrom),
+                'drm_params' :
+                    to_json(annotation_ExAC_lsf_params(email)),
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
 
     def create_1000G_annotation_tasks(self, parent_tasks):
         tasks = []
@@ -199,6 +228,25 @@ class Pipeline(object):
         return tasks
 
 # C M D S #####################################################################
+
+def annotation_ExAC(in_vcf, in_chrom, out_vcf, out_log):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/annotate-w-ExAC.sh'),
+    }
+    cmd_args = merge_params(default, args)
+    cmd = "{script} {in_vcf} {out_vcf} 2>&1 >{out_log}".format(**cmd_args)
+    return cmd
+
+def annotation_ExAC_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000] rusage[mem=8000]',
+    }
+
 def annotation_1000G(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
