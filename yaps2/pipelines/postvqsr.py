@@ -97,7 +97,7 @@ class Pipeline(object):
             output_vcf = 'ExAC-annotated.c{}.vcf.gz'.format(chrom)
             output_log = 'ExAC-annotate.{}.log'.format(chrom)
             task = {
-                'func' : annotation_1000G,
+                'func' : annotation_ExAC,
                 'params' : {
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
