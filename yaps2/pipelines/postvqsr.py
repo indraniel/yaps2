@@ -79,12 +79,148 @@ class Pipeline(object):
 
     def construct_pipeline(self):
         # 1. remove unused alternates
-        # 2. denormalize, decompose, and uniq
         remove_ac_0_tasks = self.create_remove_ac_0_tasks()
+        # 2. denormalize, decompose, and uniq
         dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
+        # 3. filter missingess
         filter_missingness_tasks = self.create_filter_missingness_tasks(dnu_tasks)
+        # 4. annotate with 1000G
         annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_missingness_tasks)
+        # 5. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
+        # 6. CADD/VEP annotation
+#        annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
+        # 7. GATK VariantEval
+#        variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
+        # 7.1. Merge & Plot GATK VariantEval Stats
+##        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
+        # 8. bcftools stats
+#        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
+        # 8.1 Merge & Plot bcftools stats
+##        bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
+
+    def create_bcftools_stats_summary_task(self, parent_tasks):
+        stage = '8.1-bcftools-stats-summary'
+        output_dir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        prior_stage_name = parent_tasks[0].stage.name
+        input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+
+        task = {
+            'func' : bcftools_stats_summary,
+            'params' : {
+                'in_dir' : input_dir,
+                'out_dir' : output_dir,
+            },
+            'stage_name' : stage,
+            'uid' : 'all-chroms',
+            'drm_params' : to_json(variant_eval_summary_lsf_params(email)),
+            'parents' : parent_tasks,
+        }
+
+        summary_task = self.workflow.add_task(**task)
+        return summary_task
+
+    def create_variant_eval_summary_task(self, parent_tasks):
+        stage = '7.1-gatk-variant-eval-summary'
+        output_dir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        prior_stage_name = parent_tasks[0].stage.name
+        input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+
+        task = {
+            'func' : variant_eval_summary,
+            'params' : {
+                'in_dir' : input_dir,
+                'out_dir' : output_dir,
+            },
+            'stage_name' : stage,
+            'uid' : 'all-chroms',
+            'drm_params' : to_json(variant_eval_summary_lsf_params(email)),
+            'parents' : parent_tasks,
+        }
+
+        summary_task = self.workflow.add_task(**task)
+        return summary_task
+
+    def create_bcftools_stats_tasks(self, parent_tasks):
+        tasks = []
+        stage = '8-bcftools-stats'
+        basedir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        for ptask in parent_tasks:
+            chrom = ptask.params['in_chrom']
+            output_stats = '{}.stats.out'.format(chrom)
+            task = {
+                'func' : bcftools_stats,
+                'params' : {
+                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_chrom' : chrom,
+                    'out_stats' : os.path.join(basedir, chrom, output_stats),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=chrom),
+                'drm_params' :
+                    to_json(bcftools_stats_lsf_params(email)),
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
+
+    def create_variant_eval_tasks(self, parent_tasks):
+        tasks = []
+        stage = '7-gatk-variant-eval'
+        basedir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        for ptask in parent_tasks:
+            chrom = ptask.params['in_chrom']
+            output_stats = 'chrom-{}-variant-eval.out'.format(chrom)
+            output_log = 'chrom-{}-variant-eval.log'.format(chrom)
+            task = {
+                'func' : ,
+                'params' : {
+                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_chrom' : chrom,
+                    'out_stats' : os.path.join(basedir, chrom, output_stats),
+                    'out_log' : os.path.join(basedir, chrom, output_log),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=chrom),
+                'drm_params' :
+                    to_json(gatk_variant_eval_lsf_params(email)),
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
+
+    def create_vep_cadd_annotation_task(self, parent_tasks):
+        stage = '6-vep-cadd-annotation'
+        output_dir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        prior_stage_name = parent_tasks[0].stage.name
+        input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+
+        task = {
+            'func' : annotation_VEP_CADD,
+            'params' : {
+                'in_dir' : input_dir,
+                'out_dir' : output_dir,
+            },
+            'stage_name' : stage,
+            'uid' : 'all-chroms',
+            'drm_params' : to_json(annotation_VEP_CADD_lsf_params(email)),
+            'parents' : parent_tasks,
+        }
+
+        vep_cadd_task = self.workflow.add_task(**task)
+        return vep_cadd_task
 
     def create_ExAC_annotation_tasks(self, parent_tasks):
         tasks = []
@@ -228,6 +364,128 @@ class Pipeline(object):
         return tasks
 
 # C M D S #####################################################################
+def bcftools_stats_summary(in_dir, out_dir):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/bcftools-stats-summary-plots.sh'),
+    }
+    cmd_args = merge_params(default, args)
+    cmd = "{script} {in_dir} {out_dir}".format(**cmd_args)
+    return cmd
+
+def bcftools_stats_summary_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000] rusage[mem=8000]',
+    }
+
+def bcftools_stats(in_vcf, in_chrom, out_stats):
+    args = locals()
+    default = {
+        'bcftools' : '/gsc/bin/bcftools1.2',
+        'reference' : '/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa',
+    }
+
+    cmd_args = merge_params(default, args)
+
+    cmd = ( "{bcftools} stats "
+            "--split-by-ID "
+            "-F {reference} "
+            "-f '.,PASS' "
+            "{in_vcf} "
+            ">{out_stats}").format(**cmd_args)
+
+    return cmd
+
+def bcftools_stats_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 10000000,
+        'R' : 'select[mem>10000] rusage[mem=10000]',
+    }
+
+def variant_eval_summary(in_dir, out_dir):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/merge-and-plot-gatk-variant-eval-stats.sh'),
+    }
+    cmd_args = merge_params(default, args)
+    cmd = "{script} {in_dir} {out_dir}".format(**cmd_args)
+    return cmd
+
+def variant_eval_summary_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000] rusage[mem=8000]',
+    }
+
+def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
+    args = locals()
+    default = {
+        'java' : '/gapp/x64linux/opt/java/jre/jre1.8.0_31/bin/java',
+        'jar'  : '/gscmnt/gc2802/halllab/idas/jira/BIO-1662/vendor/local/jars/GenomeAnalysisTK-3.5-idas-experimental-293f64d-2016.02.19.jar',
+        'java_opts' : "-Xmx4096m",
+        'reference' : '/gscmnt/gc2719/halllab/genomes/human/GRCh37/1kg_phase1/human_g1k_v37.fasta',
+        'dbsnp': '/gscmnt/gc2802/halllab/idas/jira/BIO-1662/data/derived/FinnMetSeq-WGS/10-decompose-normalize-1000G-variant-ref-v1/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.decompose.normalize.vcf.gz',
+    }
+
+    cmd_args = merge_params(default, args)
+
+    cmd = ( "{java} -jar {jar} "
+            "-T VariantEval "
+            "-D {dbsnp} "
+            "-R {reference} "
+            "--removeUnusedAlternates "
+            "-ST Sample "
+            "-noST "
+            "-EV TiTvVariantEvaluator "
+            "-EV CountVariants "
+            "-EV CompOverlap "
+            "-EV IndelSummary "
+            "-EV MultiallelicSummary "
+            "-noEV "
+            "-L {in_chrom} "
+            "-eval {in_vcf} "
+            "-o {out_stats} "
+            "2>&1 "
+            ">{out_log}").format(**cmd_args)
+
+    return cmd
+
+def gatk_variant_eval_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 10000000,
+        'R' : 'select[mem>10000] rusage[mem=10000]',
+    }
+
+def annotation_VEP_CADD(in_dir, out_dir):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/vep-cadd-annotation.sh'),
+    }
+    cmd_args = merge_params(default, args)
+    cmd = "{script} {in_dir} {out_dir} 2>&1 >{out_log}".format(**cmd_args)
+    return cmd
+
+def annotation_VEP_CADD_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000] rusage[mem=8000]',
+    }
 
 def annotation_ExAC(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
