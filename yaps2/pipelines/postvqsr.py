@@ -475,7 +475,7 @@ def annotation_VEP_CADD(in_dir, out_dir):
         'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/vep-cadd-annotation.sh'),
     }
     cmd_args = merge_params(default, args)
-    cmd = "{script} {in_dir} {out_dir} 2>&1 >{out_log}".format(**cmd_args)
+    cmd = "{script} {in_dir} {out_dir}".format(**cmd_args)
     return cmd
 
 def annotation_VEP_CADD_lsf_params(email):
