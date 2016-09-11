@@ -182,7 +182,7 @@ class Pipeline(object):
             output_stats = 'chrom-{}-variant-eval.out'.format(chrom)
             output_log = 'chrom-{}-variant-eval.log'.format(chrom)
             task = {
-                'func' : ,
+                'func' : gatk_variant_eval,
                 'params' : {
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
