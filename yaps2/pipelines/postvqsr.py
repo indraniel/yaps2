@@ -443,7 +443,6 @@ def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
             "-T VariantEval "
             "-D {dbsnp} "
             "-R {reference} "
-            "--removeUnusedAlternates "
             "-ST Sample "
             "-noST "
             "-EV TiTvVariantEvaluator "
