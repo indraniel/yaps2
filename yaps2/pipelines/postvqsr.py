@@ -89,15 +89,15 @@ class Pipeline(object):
         # 5. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
         # 6. CADD/VEP annotation
-#        annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
+        annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
         # 7. GATK VariantEval
-#        variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
+        variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
         # 7.1. Merge & Plot GATK VariantEval Stats
-##        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
+        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
         # 8. bcftools stats
-#        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
+        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
         # 8.1 Merge & Plot bcftools stats
-##        bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
+        bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
 
     def create_bcftools_stats_summary_task(self, parent_tasks):
         stage = '8.1-bcftools-stats-summary'
