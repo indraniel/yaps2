@@ -38,7 +38,7 @@ pdf=${outdir}/gatk-variant-eval-stats-minus-control-samples.pdf
 
 Rscript ${BIO_1662}/bin/diagnostic-plots-annotation-review.r \
     --input=${merged_stats} \
-    --prune="H_HF-CHM1htert-US-5A,H_IJ-NA12878-NA12878_K5,H_PY-CHM13-CHM13h" \
+    --prune="H_HF-CHM1htert-US-5A,H_IJ-HG00512-HG00512_1,H_IJ-HG00513-HG00513_1,H_IJ-HG00514-HG00514_1,H_IJ-HG00731-HG00731_2,H_IJ-HG00732-HG00732_1,H_IJ-HG00733-HG00733_2,H_IJ-NA12878-NA12878_K10,H_IJ-NA12891-NA12891_D2,H_IJ-NA12892-NA12892_E1,H_IJ-NA19238-NA19238_D3,H_IJ-NA19239-NA19239_B9,H_IJ-NA19240-NA19240_F1,H_PY-CHM13-CHM13h" \
     --output=${pdf}
 
 echo "created ${pdf}"
