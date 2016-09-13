@@ -115,7 +115,7 @@ class Pipeline(object):
             },
             'stage_name' : stage,
             'uid' : 'all-chroms',
-            'drm_params' : to_json(variant_eval_summary_lsf_params(email)),
+            'drm_params' : to_json(bcftools_stats_summary_lsf_params(email)),
             'parents' : parent_tasks,
         }
 
