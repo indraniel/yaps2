@@ -17,6 +17,11 @@ datadir=$1
 outdir=$2
 merged_stats=${outdir}/merged.dat
 
+if [ ! -d "$outdir" ]; then
+    echo "Creating output directory : $outdir"
+    mkdir -p $outdir
+fi
+
 python ${BIO_1662}/bin/merge-gatk-vcfeval-outputs.py \
     --out ${merged_stats} \
     --skip 'MetricsCollection' \
