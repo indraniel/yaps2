@@ -53,8 +53,11 @@ $(unfiltered-bed) $(unfiltered-bim) $(unfiltered-fam): $(INPUT_VCF) $(TRIO_FAM)
 
 PLINKOUT = $(unfiltered-mendel) $(unfiltered-fmendel) $(unfiltered-imendel) $(unfiltered-lmendel)
 reformat:
-	# This takes each plink output file and translates it to use tabs. Commands taken from https://www.cog-genomics.org/plink2/other#tabspace
-	$(foreach file,$(PLINKOUT),cat $(file) | sed 's/^[[:space:]]*//g' | sed 's/[[:space:]]*$$//g' | tr -s ' ' '\t' > $(file).tmp && mv $(file).tmp $(file);)
+	# This takes each plink output file and translates it to use tabs.
+	# Commands taken from https://www.cog-genomics.org/plink2/other#tabspace
+	$(foreach file,$(PLINKOUT),cat $(file) | sed 's/^[[:space:]]*//g' \
+		| sed 's/[[:space:]]*$$//g' \
+		| tr -s ' ' '\t' > $(file).tmp && mv $(file).tmp $(file);)
 
 clean:
 	$(RM) $(PRJ_DIR)
