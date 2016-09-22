@@ -32,10 +32,6 @@ unfiltered-fmendel := $(unfiltered).fmendel
 unfiltered-imendel := $(unfiltered).imendel
 unfiltered-lmendel := $(unfiltered).lmendel
 
-
-#all: cohort.sex cohort.fam unfiltered.mendel unfiltered.fmendel unfiltered.imendel unfiltered.lmendel unfiltered.frq.strat reformat unfiltered.fvariants unfiltered.mie.var.txt
-
-
 all: check-env $(unfiltered-mie-var-txt) $(unfiltered-info-variants-var)
 
 $(unfiltered-mie-var-txt): $(unfiltered-info-variants-var) $(unfiltered-fmendel)
@@ -54,39 +50,6 @@ $(unfiltered-bed) $(unfiltered-bim) $(unfiltered-fam): $(INPUT_VCF) $(TRIO_FAM)
 	$(PLINK) --vcf $(INPUT_VCF) --double-id --make-bed --out $(unfiltered) --allow-extra-chr
 	$(RM) $(unfiltered-nosex)
 	$(CP) $(TRIO_FAM) $(unfiltered-fam)
-
-
-# trios.vcf.gz: trio.samples
-# 	$(BCFTOOLS) view -S trio.samples $(VCF) -o trios.vcf.gz -O z
-# 
-# samples_in_order:
-# 	$(BCFTOOLS) view -h $(VCF) | grep "^#CHROM" | cut --complement -f1-9 | tr '\t' '\n' > samples_in_order
-# 
-# trio.samples: samples_in_order
-# 	grep H_IJ samples_in_order > trio.samples
-# 
-# cohort.sex:
-# 	$(CP) /gscmnt/gc2802/halllab/dlarson/svtools_tests/benchmarking_with_trios/trios_plus_finns/data/reclass/cohort.sex .
-# 
-# trio.fam:
-# 	echo -n "SH032\tH_IJ-HG00512-HG00512_1\t0\t0\t1\t0\n\
-# SH032\tH_IJ-HG00513-HG00513_1\t0\t0\t2\t0\n\
-# SH032\tH_IJ-HG00514-HG00514_1\tH_IJ-HG00512-HG00512_1\tH_IJ-HG00513-HG00513_1\t2\t0\n\
-# PR05\tH_IJ-HG00731-HG00731_2\t0\t0\t1\t0\n\
-# PR05\tH_IJ-HG00732-HG00732_1\t0\t0\t2\t0\n\
-# PR05\tH_IJ-HG00733-HG00733_2\tH_IJ-HG00731-HG00731_2\tH_IJ-HG00732-HG00732_1\t2\t0\n\
-# CEPH1463\tH_IJ-NA12878-NA12878_K10\tH_IJ-NA12891-NA12891_D2\tH_IJ-NA12892-NA12892_E1\t2\t0\n\
-# CEPH1463\tH_IJ-NA12891-NA12891_D2\t0\t0\t1\t0\n\
-# CEPH1463\tH_IJ-NA12892-NA12892_E1\t0\t0\t2\t0\n\
-# Y117\tH_IJ-NA19238-NA19238_D3\t0\t0\t2\t0\n\
-# Y117\tH_IJ-NA19239-NA19239_B9\t0\t0\t1\t0\n\
-# Y117\tH_IJ-NA19240-NA19240_F1\tH_IJ-NA19239-NA19239_B9\tH_IJ-NA19238-NA19238_D3\t2\t0\n\
-# " > trio.fam
-# 
-# cohort.fam: trio.fam cohort.sex
-# 	$(CP) trio.fam cohort.fam
-
-########
 
 PLINKOUT = $(unfiltered-mendel) $(unfiltered-fmendel) $(unfiltered-imendel) $(unfiltered-lmendel)
 reformat:
