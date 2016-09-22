@@ -59,7 +59,7 @@ reformat:
 		| sed 's/[[:space:]]*$$//g' \
 		| tr -s ' ' '\t' > $(file).tmp && mv $(file).tmp $(file);)
 
-clean:
+clean: check-env
 	$(RM) $(PRJ_DIR)
 
 check-env:
