@@ -3,7 +3,6 @@
 # needed inputs
 INPUT_VCF :=                # aka "trios.vcf.gz"
 PRJ_DIR  := 
-COHORT_SEX :=               # aka /gscmnt/gc2802/halllab/dlarson/svtools_tests/benchmarking_with_trios/trios_plus_finns/data/reclass/cohort.sex
 # Note that the order of this .fam (trio.fam) file HAS TO MATCH the order of the samples in the VCF
 TRIO_FAM :=                 # aka "cohort.fam"
 
@@ -66,10 +65,6 @@ clean:
 check-env:
 ifndef PRJ_DIR
 	$(error PRJ_DIR is undefined!)
-endif
-
-ifndef COHORT_SEX
-	$(error COHORT_SEX is undefined!)
 endif
 
 ifndef TRIO_FAM
