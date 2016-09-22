@@ -5,13 +5,14 @@ from yaps2.utils import to_json, merge_params, natural_key
 
 class Config(object):
     def __init__(self, job_db, input_vcfs_file,
-                       percentiles_file, samples_file, tranches_file,
+                       percentiles_file, samples_file, tranches_file, plink_fam_file,
                        project_name, email, workspace):
         self.email = email
         self.db = job_db
         self.project_name = project_name
         self.rootdir = workspace
         self.control_samples_file = samples_file
+        self.plink_fam_file = plink_fam_file
 
         self.ensure_rootdir()
 

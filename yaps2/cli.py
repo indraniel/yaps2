@@ -42,6 +42,8 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
               help='A file of chromosomal VCFs to process')
 @click.option('--samples', required=True, type=click.Path(exists=True),
               help='A list of samples to restrict to [sample-name delimited by newlines]')
+@click.option('--plink-fam', required=True, type=click.Path(exists=True),
+              help='A plink .fam file describing the sample relationships'),
 @click.option('--percentiles', required=True, type=click.Path(exists=True),
               help='A tsv of category/percentile/min-vqslod/max-vqslod lines')
 @click.option('--tranches', required=True, type=click.Path(exists=True),
@@ -54,12 +56,12 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
               help='Job Mode -- [default=lsf]')
 @click.option('--restart/--no-restart', default=False,
               help='Restart Pipeline from scratch')
-def mie(job_db, input_vcfs, percentiles, samples, tranches,
+def mie(job_db, input_vcfs, percentiles, samples, tranches, plink_fam,
         project_name, email, workspace, drm, restart):
     from yaps2.pipelines.mie import Config, Pipeline
     config = Config(
         job_db, input_vcfs,
-        percentiles, samples, tranches,
+        percentiles, samples, tranches, plink_fam,
         project_name, email, workspace
     )
     workflow = Pipeline(config, drm, restart)
