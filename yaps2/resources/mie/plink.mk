@@ -33,7 +33,7 @@ unfiltered-lmendel := $(unfiltered).lmendel
 
 all: check-env $(unfiltered-mie-var-txt) $(unfiltered-info-variants-var)
 
-$(unfiltered-mie-var-txt): $(unfiltered-info-variants-var) $(unfiltered-fmendel)
+$(unfiltered-mie-var-txt): $(unfiltered-info-variants-var) $(unfiltered-fmendel) reformat
 	$(BASH) $(MAKE_TABLE) $(unfiltered-info-variants-var) $(unfiltered-fmendel) > $(unfiltered-mie-var-txt)
 
 $(unfiltered-info-variants-var): $(TRIO_FAM) $(INPUT_VCF)
