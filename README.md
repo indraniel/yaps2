@@ -20,7 +20,7 @@ _[yaps][0] is based on [ruffus][1].  This repository, [yaps2][3], is based on a 
     cd yaps2
     virtualenv venv
     source venv/bin/activate
-    pip install --process-dependency-links -e .
+    pip install --no-cache-dir --process-dependency-links -e .
     # pygraphviz needs some extra install help
     pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/" --force-reinstall --upgrade
     # < do development work >
