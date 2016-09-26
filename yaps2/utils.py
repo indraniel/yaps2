@@ -1,4 +1,4 @@
-import json, re
+import json, re, os
 
 def to_json(var):
     return json.dumps(var)
@@ -12,3 +12,7 @@ def merge_params(common, unique):
 def natural_key(string_):
     """See http://www.codinghorror.com/blog/archives/001018.html"""
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
+
+def ensure_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)

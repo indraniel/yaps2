@@ -1,7 +1,7 @@
 import os, pwd
 import pkg_resources
 from cosmos.api import Cosmos, Dependency, default_get_submit_args
-from yaps2.utils import to_json, merge_params, natural_key
+from yaps2.utils import to_json, merge_params, natural_key, ensure_directory
 
 class Config(object):
     def __init__(self, job_db, input_vcfs_file,
