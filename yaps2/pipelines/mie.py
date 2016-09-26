@@ -121,6 +121,48 @@ class Pipeline(object):
 
     def construct_pipeline(self):
         partition_tasks = self.create_vcf_partition_tasks()
+        plink_pipeline_tasks = self.create_plink_pipeline_tasks(partition_tasks)
+
+    def create_plink_pipeline_tasks(self, parent_tasks):
+        tasks = []
+        stage = '2-plink-pipeline'
+        basedir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        for ptask in sorted(parent_tasks, key=lambda t: t.id):
+            chrom = ptask.params['in_chrom']
+            label = ptask.params['in_label']
+            method = ptask.params['in_method']
+            category = ptask.params['in_type']
+
+            output_dir = os.path.join(basedir, category, method, label, chrom)
+#            ensure_directory(output_dir)
+
+            task = {
+                'func' : plink_pipeline,
+                'params' : {
+                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_trio_fam' : self.config.plink_fam_file,
+                    'chrom' : chrom,
+                    'type' : category,
+                    'method' : method,
+                    'chrom' : chrom,
+                    'label' : label,
+                    'out_dir' : output_dir,
+                },
+                'stage_name' : stage,
+                'uid' : '{category}:{method}:{label}:{chrom}'.format(
+                    chrom=chrom, method=method, category=category, label=label
+                ),
+                'drm_params' :
+                    to_json(plink_pipeline_lsf_params(email)),
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
+
+        pass
 
     def create_vcf_partition_tasks(self):
         all_tasks = []
@@ -207,6 +249,30 @@ def vcf_partition(in_vcf, out_vcf, in_min_vqslod, in_max_vqslod, in_samples, in_
     return cmd
 
 def vcf_partition_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000] rusage[mem=8000]',
+    }
+
+def plink_pipeline(in_vcf, in_trio_fam, out_dir, **kwargs):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/mie/plink.mk'),
+    }
+
+    cmd_args = merge_params(default, args)
+
+    cmd = ( "make -f {script} "
+            "INPUT_VCF={in_vcf} "
+            "TRIO_FAM={in_trio_fam} "
+            "PRJ_DIR={out_dir}" ).format(**cmd_args)
+
+    return cmd
+
+def plink_pipeline_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
