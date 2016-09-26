@@ -43,7 +43,7 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
 @click.option('--samples', required=True, type=click.Path(exists=True),
               help='A list of samples to restrict to [sample-name delimited by newlines]')
 @click.option('--plink-fam', required=True, type=click.Path(exists=True),
-              help='A plink .fam file describing the sample relationships'),
+              help='A plink .fam file describing the sample relationships')
 @click.option('--percentiles', required=True, type=click.Path(exists=True),
               help='A tsv of category/percentile/min-vqslod/max-vqslod lines')
 @click.option('--tranches', required=True, type=click.Path(exists=True),
