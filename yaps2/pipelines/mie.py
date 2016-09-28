@@ -122,6 +122,58 @@ class Pipeline(object):
     def construct_pipeline(self):
         partition_tasks = self.create_vcf_partition_tasks()
         plink_pipeline_tasks = self.create_plink_pipeline_tasks(partition_tasks)
+        aggregate_mie_stats_tasks = self.create_aggregate_mie_stats_tasks(plink_pipeline_tasks)
+
+    def create_aggregate_mie_stats_tasks(self, parent_tasks):
+        tasks = []
+        stage = '3-aggregate-mie-stats'
+        basedir = os.path.join(self.config.rootdir, stage)
+        email = self.config.email
+
+        input_dir = os.path.join(self.config.rootdir, parent_tasks[0].stage.name)
+
+        parent_snp_tranche_tasks = \
+            [task for task in parent_tasks \
+                  if (task.params['type'] == 'snps' and task.params['method'] == 'tranche') ]
+
+        parent_snp_percentile_tasks = \
+            [task for task in parent_tasks \
+                  if (task.params['type'] == 'snps' and task.params['method'] == 'percentile') ]
+
+        parent_indel_tranche_tasks = \
+            [task for task in parent_tasks \
+                  if (task.params['type'] == 'indels' and task.params['method'] == 'tranche') ]
+
+        parent_indel_percentile_tasks = \
+            [task for task in parent_tasks \
+                  if (task.params['type'] == 'indels' and task.params['method'] == 'percentile') ]
+
+        task_groups = (parent_snp_tranche_tasks, parent_snp_percentile_tasks,
+                       parent_indel_tranche_tasks, parent_indel_percentile_tasks)
+
+        for tgroup in task_groups:
+            category = tgroup[0].params['type']
+            method = tgroup[0].params['method']
+            out_filename = '.'.join([category, method, 'tsv'])
+            output_file = os.path.join(basedir, out_filename)
+            task = {
+                'func' : aggregate_mie_statistics,
+                'params' : {
+                    'in_category' : category,
+                    'in_method' : method,
+                    'in_dir' : input_dir,
+                    'out_file' : output_file,
+                },
+                'stage_name' : stage,
+                'uid' : '{category}:{method}'.format(
+                    method=method, category=category
+                ),
+                'drm_params' :
+                    to_json(aggregate_mie_statistics_lsf_params(email)),
+                'parents' : tgroup,
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
 
     def create_plink_pipeline_tasks(self, parent_tasks):
         tasks = []
@@ -279,4 +331,29 @@ def plink_pipeline_lsf_params(email):
         'q' : "long",
         'M' : 8000000,
         'R' : 'select[mem>8000] rusage[mem=8000]',
+    }
+
+def aggregate_mie_statistics(in_category, in_method, in_dir, out_file):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/mie/aggregate-mie-statistics.py'),
+    }
+
+    cmd_args = merge_params(default, args)
+
+    cmd = ( "{script} "
+            "--input-dir={in_dir} "
+            "--output-file={out_file} "
+            "--category={in_category} "
+            "--method={in_method}" ).format(**cmd_args)
+
+    return cmd
+
+def aggregate_mie_statistics_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 4000000,
+        'R' : 'select[mem>4000] rusage[mem=4000]',
     }
