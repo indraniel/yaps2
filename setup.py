@@ -26,8 +26,12 @@ setup(
     ],
     install_requires=[
         'cosmos-wfm==2.0.10.indraniel1',
-        'click',
-        'clint',
+        'click==6.6',
+        'clint==0.5.1',
+        'matplotlib==1.5.3',
+        'scipy==0.18.1',
+        'pandas==0.18.1',
+        'seaborn==0.7.1',
     ],
     entry_points='''
         [console_scripts]
