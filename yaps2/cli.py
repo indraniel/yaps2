@@ -10,11 +10,12 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=__version__)
 def cli():
+    '''A collection of CCDG related VCF data processing and QC analysis pipelines.'''
     # to make this script/module behave nicely with unix pipes
     # http://newbebweb.blogspot.com/2012/02/python-head-ioerror-errno-32-broken.html
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
-@cli.command()
+@cli.command(short_help="post-VQSR data pipeline")
 @click.option('--workspace', required=True, type=click.Path(),
               help='A directory to place outputs into')
 @click.option('--job-db', default=None, type=click.Path(),
@@ -35,7 +36,7 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
     workflow = Pipeline(config, drm, restart)
     workflow.run()
 
-@cli.command()
+@cli.command(short_help="Mendelian Inheritance Error [MIE] Analysis Pipeline")
 @click.option('--workspace', required=True, type=click.Path(),
               help='A directory to place outputs into')
 @click.option('--job-db', default=None, type=click.Path(),
@@ -69,7 +70,7 @@ def mie(job_db, input_vcfs, percentiles, samples, tranches, plink_fam,
     workflow = Pipeline(config, drm, restart)
     workflow.run()
 
-@cli.command()
+@cli.command(short_help="Principal Component Analysis [PCA] Pipeline")
 @click.option('--workspace', required=True, type=click.Path(),
               help='A directory to place outputs into')
 @click.option('--job-db', default=None, type=click.Path(),
