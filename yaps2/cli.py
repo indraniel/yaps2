@@ -66,3 +66,26 @@ def mie(job_db, input_vcfs, percentiles, samples, tranches, plink_fam,
     )
     workflow = Pipeline(config, drm, restart)
     workflow.run()
+
+@cli.command()
+@click.option('--workspace', required=True, type=click.Path(),
+              help='A directory to place outputs into')
+@click.option('--job-db', default=None, type=click.Path(),
+              help="Path to LSF job sqlite DB [default='<workspace>/.job_queue.db']")
+@click.option('--input-vcfs', required=True, type=click.Path(exists=True),
+              help='A file of chromosomal VCFs to process')
+@click.option('--project-name', default='yaps2.default', type=click.STRING,
+              help='A prefix used to name batch jobs')
+@click.option('--vqslod-threshold', required=True, type=click.FLOAT,
+              help='A minimum VQSLOD tranche threshold to choose SNPs from [min. snp tranche 2 VQSLOD point]')
+@click.option('--email', default=None, type=click.STRING,
+              help='An email used to notify about batch jobs [default=userid@genome.wustl.edu]')
+@click.option('--drm', default='lsf', type=click.Choice(['local', 'lsf']),
+              help='Job Mode -- [default=lsf]')
+@click.option('--restart/--no-restart', default=False,
+              help='Restart Pipeline from scratch')
+def pca(job_db, input_vcfs, project_name, email, workspace, vqslod_threshold, drm, restart):
+    from yaps2.pipelines.pca import Config, Pipeline
+    config = Config(job_db, input_vcfs, project_name, email, workspace, vqslod_threshold)
+    workflow = Pipeline(config, drm, restart)
+    workflow.run()
