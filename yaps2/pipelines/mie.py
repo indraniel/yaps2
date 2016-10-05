@@ -174,7 +174,6 @@ class Pipeline(object):
             }
             tasks.append( self.workflow.add_task(**task) )
 
-
     def create_plink_pipeline_tasks(self, parent_tasks):
         tasks = []
         stage = '2-plink-pipeline'
@@ -213,8 +212,6 @@ class Pipeline(object):
             tasks.append( self.workflow.add_task(**task) )
 
         return tasks
-
-        pass
 
     def create_vcf_partition_tasks(self):
         all_tasks = []
