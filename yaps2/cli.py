@@ -16,7 +16,7 @@ def cli():
 @click.option('--workspace', required=True, type=click.Path(),
               help='A directory to place outputs into')
 @click.option('--job-db', default=None, type=click.Path(),
-              help="Path to LSF job sqlite DB [default='<workspace>/job_queue.db']")
+              help="Path to LSF job sqlite DB [default='<workspace>/.job_queue.db']")
 @click.option('--input-vcfs', required=True, type=click.Path(exists=True),
               help='A file of chromosomal VCFs to process')
 @click.option('--project-name', default='yaps2.default', type=click.STRING,
@@ -37,7 +37,7 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
 @click.option('--workspace', required=True, type=click.Path(),
               help='A directory to place outputs into')
 @click.option('--job-db', default=None, type=click.Path(),
-              help="Path to LSF job sqlite DB [default='<workspace>/job_queue.db']")
+              help="Path to LSF job sqlite DB [default='<workspace>/.job_queue.db']")
 @click.option('--input-vcfs', required=True, type=click.Path(exists=True),
               help='A file of chromosomal VCFs to process')
 @click.option('--samples', required=True, type=click.Path(exists=True),
