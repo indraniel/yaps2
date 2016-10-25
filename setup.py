@@ -37,9 +37,5 @@ setup(
         yaps2=yaps2.cli:cli
     ''',
     packages=find_packages(exclude=('tests', 'docs')),
-    package_data={
-        '': ['*.md', 'LICENSE'],
-        'yaps2' : ['yaps2/resources/*'],
-    },
     include_package_data=True,
 )

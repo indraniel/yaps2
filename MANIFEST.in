@@ -1,1 +1,2 @@
-include yaps2/yaps2/resources/*
+recursive requirements.txt README.md LICENSE
+recursive-include yaps2 *
