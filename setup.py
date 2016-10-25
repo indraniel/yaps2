@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
+from glob import glob
 
 
 with open('README.md') as f:
@@ -40,7 +41,7 @@ setup(
     packages=find_packages(exclude=('tests', 'docs')),
     package_data={
         '': ['*.md', 'LICENSE'],
-        'yaps2' : ['resources/*'],
+        'yaps2' : [glob('resources/*')],
     },
     include_package_data=True,
 )
