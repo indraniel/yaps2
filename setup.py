@@ -42,4 +42,5 @@ setup(
         '': ['*.md', 'LICENSE'],
         'yaps2' : ['resources/*'],
     },
+    include_package_data=True,
 )
