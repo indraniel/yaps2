@@ -1,1 +1,1 @@
-recursive-include yaps2/resources/*
+include yaps2/yaps2/resources/*
