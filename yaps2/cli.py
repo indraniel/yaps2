@@ -92,3 +92,26 @@ def pca(job_db, input_vcfs, project_name, email, workspace, vqslod_threshold, dr
     config = Config(job_db, input_vcfs, project_name, email, workspace, vqslod_threshold)
     workflow = Pipeline(config, drm, restart)
     workflow.run()
+
+@cli.command(name='b38-realign', short_help="Re-align raw sequence data with Build 38 and speedseq")
+@click.option('--workspace', required=True, type=click.Path(),
+              help='A directory to place outputs into')
+@click.option('--job-db', default=None, type=click.Path(),
+              help="Path to LSF job sqlite DB [default='<workspace>/.job_queue.db']")
+@click.option('--project-name', default='yaps2.default', type=click.STRING,
+              help='A prefix used to name batch jobs')
+@click.option('--input-sample-bams', required=True, type=click.Path(),
+              help='A JSON file containing the sample/bam data to be processed')
+@click.option('--email', default=None, type=click.STRING,
+              help='An email used to notify about batch jobs [default=userid@genome.wustl.edu]')
+@click.option('--drm', default='lsf', type=click.Choice(['local', 'lsf']),
+              help='Job Mode -- [default=lsf]')
+@click.option('--drm-job-group', required=True, type=click.STRING,
+              help='An LSF job group to control cluster usage')
+@click.option('--restart/--no-restart', default=False,
+              help='Restart Pipeline from scratch')
+def b38_realign(job_db, input_sample_bams, project_name, email, workspace, drm, drm_job_group, restart):
+    from yaps2.pipelines.b38 import Config, Pipeline
+    config = Config(job_db, input_sample_bams, project_name, email, workspace, drm_job_group)
+    workflow = Pipeline(config, drm, restart)
+    workflow.run()
