@@ -134,7 +134,7 @@ def exec_speedseq(output_prefix, tmpdir, input_bams, **kwargs):
         'script' : pkg_resources.resource_filename('yaps2', 'resources/b38/speedseq-realign.sh'),
         # build 38
         'reference' : os.path.join(
-            '/gscmnt/gc2802/halllab/ccdg_resources/genomes'
+            '/gscmnt/gc2802/halllab/ccdg_resources/genomes',
             'human/GRCh38DH/bwa/0_7_12/all_sequences.fa'
         ),
     }
