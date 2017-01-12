@@ -33,8 +33,24 @@ _[yaps][0] is based on [ruffus][1].  This repository, [yaps2][3], is based on a 
 
 ## Misc. Notes
 
-* Currently only the `postvqsr` pipeline exists.  See `yaps2 --help` and/or `yaps postvqsr --help` for more information on the available commands/pipelines and options.
+BIO-1984 is the "grandfather" issue for most of these pipelines. See `yaps2 --help` and/or `yaps <pipeline> --help` for more information on the available commands/pipelines and options.
+
+### `postvqsr` pipeline
+
 * `--input-vcfs` is a file containing a tab-separated list of `*.vcf.gz` files in `<CHROM>\t<VCF.GZ FILE>` format
+* Example Usage (see `BIO-1984` -- `BIO-1984/bin/run-pipeline.sh`)
+
+### Mendelian Error Rate `mie` pipeline
+
+* Example Usage (see `BIO-2000` -- `BIO-2000/bin/1-run-pipeline.sh`)
+
+### Principal Component Analysis `pca` pipeline
+
+* Example Usage (see `BIO-2020 -- `BIO-2020/bin/1-run-pipeline.sh`)
+
+### Build38 realignment `b38` pipeline
+
+* Example Usage (see `BIO-2078` -- `BIO-2078/bin/19-run-speedseq-realign-pipeline.sh`)
 
 [0]: https://github.com/indraniel/yaps
 [1]: http://www.ruffus.org.uk/
