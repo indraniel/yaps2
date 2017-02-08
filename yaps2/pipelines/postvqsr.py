@@ -82,15 +82,15 @@ class Pipeline(object):
         # 1. remove unused alternates
         remove_ac_0_tasks = self.create_remove_ac_0_tasks()
         # 2. denormalize, decompose, and uniq
-        dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
+        # dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
         # 3. filter missingess
-        filter_missingness_tasks = self.create_filter_missingness_tasks(dnu_tasks)
+        filter_missingness_tasks = self.create_filter_missingness_tasks(remove_ac_0_tasks)
         # 4. annotate with 1000G
         annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_missingness_tasks)
         # 5. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
         # 6. CADD/VEP annotation
-        annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
+        # annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
         # 7. GATK VariantEval
         variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
         # 7.1. Merge & Plot GATK VariantEval Stats
