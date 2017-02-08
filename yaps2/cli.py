@@ -30,9 +30,11 @@ def cli():
               help='Job Mode -- [default=lsf]')
 @click.option('--restart/--no-restart', default=False,
               help='Restart Pipeline from scratch')
-def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart):
+@click.option('--docker/--no-docker', default=False,
+              help='Use the "docker-ize" pipeline')
+def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart, docker):
     from yaps2.pipelines.postvqsr import Config, Pipeline
-    config = Config(job_db, input_vcfs, project_name, email, workspace)
+    config = Config(job_db, input_vcfs, project_name, email, workspace, docker)
     workflow = Pipeline(config, drm, restart)
     workflow.run()
 

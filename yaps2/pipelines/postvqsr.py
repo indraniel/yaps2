@@ -4,11 +4,12 @@ from cosmos.api import Cosmos, Dependency, default_get_submit_args
 from yaps2.utils import to_json, merge_params, natural_key
 
 class Config(object):
-    def __init__(self, job_db, input_vcf_list, project_name, email, workspace):
+    def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker):
         self.email = email
         self.db = job_db
         self.project_name = project_name
         self.rootdir = workspace
+        self.docker = docker
 
         self.ensure_rootdir()
 
@@ -102,10 +103,16 @@ class Pipeline(object):
     def create_bcftools_stats_summary_task(self, parent_tasks):
         stage = '8.1-bcftools-stats-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
 
         prior_stage_name = parent_tasks[0].stage.name
         input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+
+        lsf_params = get_lsf_params(
+                bcftools_stats_summary_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         task = {
             'func' : bcftools_stats_summary,
@@ -115,7 +122,7 @@ class Pipeline(object):
             },
             'stage_name' : stage,
             'uid' : 'all-chroms',
-            'drm_params' : to_json(bcftools_stats_summary_lsf_params(email)),
+            'drm_params' : lsf_params_json,
             'parents' : parent_tasks,
         }
 
@@ -125,10 +132,16 @@ class Pipeline(object):
     def create_variant_eval_summary_task(self, parent_tasks):
         stage = '7.1-gatk-variant-eval-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
 
         prior_stage_name = parent_tasks[0].stage.name
         input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+
+        lsf_params = get_lsf_params(
+                variant_eval_summary_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         task = {
             'func' : variant_eval_summary,
@@ -138,7 +151,7 @@ class Pipeline(object):
             },
             'stage_name' : stage,
             'uid' : 'all-chroms',
-            'drm_params' : to_json(variant_eval_summary_lsf_params(email)),
+            'drm_params' : lsf_params_json,
             'parents' : parent_tasks,
         }
 
@@ -149,7 +162,13 @@ class Pipeline(object):
         tasks = []
         stage = '8-bcftools-stats'
         basedir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
+
+        lsf_params = get_lsf_params(
+                bcftools_stats_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
@@ -163,8 +182,7 @@ class Pipeline(object):
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' :
-                    to_json(bcftools_stats_lsf_params(email)),
+                'drm_params' : lsf_params_json,
                 'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
@@ -175,7 +193,13 @@ class Pipeline(object):
         tasks = []
         stage = '7-gatk-variant-eval'
         basedir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
+
+        lsf_params = get_lsf_params(
+                gatk_variant_eval_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
@@ -191,8 +215,7 @@ class Pipeline(object):
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' :
-                    to_json(gatk_variant_eval_lsf_params(email)),
+                'drm_params' : lsf_params_json,
                 'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
@@ -202,10 +225,16 @@ class Pipeline(object):
     def create_vep_cadd_annotation_task(self, parent_tasks):
         stage = '6-vep-cadd-annotation'
         output_dir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
 
         prior_stage_name = parent_tasks[0].stage.name
         input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+
+        lsf_params = get_lsf_params(
+                annotation_VEP_CADD_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         task = {
             'func' : annotation_VEP_CADD,
@@ -215,7 +244,7 @@ class Pipeline(object):
             },
             'stage_name' : stage,
             'uid' : 'all-chroms',
-            'drm_params' : to_json(annotation_VEP_CADD_lsf_params(email)),
+            'drm_params' : lsf_params_json,
             'parents' : parent_tasks,
         }
 
@@ -226,7 +255,13 @@ class Pipeline(object):
         tasks = []
         stage = '5-annotate-w-ExAC'
         basedir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
+
+        lsf_params = get_lsf_params(
+                annotation_ExAC_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
@@ -242,8 +277,7 @@ class Pipeline(object):
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' :
-                    to_json(annotation_ExAC_lsf_params(email)),
+                'drm_params' : lsf_params_json,
                 'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
@@ -254,7 +288,13 @@ class Pipeline(object):
         tasks = []
         stage = '4-annotate-w-1000G'
         basedir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
+
+        lsf_params = get_lsf_params(
+                annotation_1000G_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
@@ -270,8 +310,7 @@ class Pipeline(object):
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' :
-                    to_json(annotation_1000G_lsf_params(email)),
+                'drm_params' : lsf_params_json,
                 'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
@@ -282,7 +321,13 @@ class Pipeline(object):
         tasks = []
         stage = '3-filter-missingness'
         basedir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
+
+        lsf_params = get_lsf_params(
+                filter_missingness_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
@@ -300,8 +345,7 @@ class Pipeline(object):
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' :
-                    to_json(filter_missingness_lsf_params(email)),
+                'drm_params' : lsf_params_json,
                 'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
@@ -312,7 +356,13 @@ class Pipeline(object):
         tasks = []
         stage = '2-decompose-normalize-uniq'
         basedir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
+
+        lsf_params = get_lsf_params(
+                normalize_decompose_unique_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
@@ -328,8 +378,7 @@ class Pipeline(object):
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' :
-                    to_json(normalize_decompose_unique_lsf_params(email)),
+                'drm_params' : lsf_params_json,
                 'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
@@ -340,7 +389,13 @@ class Pipeline(object):
         tasks = []
         stage = '1-select-variants-ac-0-removal'
         basedir = os.path.join(self.config.rootdir, stage)
-        email = self.config.email
+
+        lsf_params = get_lsf_params(
+                gatk_select_variants_remove_ac_0_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
 
         for chrom in self.config.chroms:
             vcf = self.config.vcfs[chrom]
@@ -356,14 +411,20 @@ class Pipeline(object):
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' :
-                    to_json(gatk_select_variants_remove_ac_0_lsf_params(email)),
+                'drm_params' : lsf_params_json,
             }
             tasks.append( self.workflow.add_task(**task) )
 
         return tasks
 
 # C M D S #####################################################################
+def get_lsf_params(task_lsf_fn, email, docker):
+    lsf_params = task_lsf_fn(email)
+    if docker:
+        lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)'"
+        lsf_params['q'] = "research-hpc"
+    return lsf_params
+
 def bcftools_stats_summary(in_dir, out_dir):
     args = locals()
     default = {
