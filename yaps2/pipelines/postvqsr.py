@@ -421,7 +421,7 @@ class Pipeline(object):
 def get_lsf_params(task_lsf_fn, email, docker):
     lsf_params = task_lsf_fn(email)
     if docker:
-        lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)'"
+        lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment:23)'"
         lsf_params['q'] = "research-hpc"
     return lsf_params
 
