@@ -9,6 +9,14 @@
 # based on: March 2, 2016 3:40PM comment in JIRA issue BIO-1792
 # https://jira.gsc.wustl.edu/browse/BIO-1792?focusedCommentId=108030&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-108030
 
+# where to find a LaTeX distribution in a docker environment
+if [ -e /.dockerenv ]; then
+    echo "I am in a docker image"
+    export PATH=/gscmnt/gc2802/halllab/idas/software/local/texlive-2015/2015/bin/x86_64-linux:$PATH
+else
+    echo "I am NOT in a docker image"
+fi
+
 # setup the python virtualenv environment (using python 2.7.10 with matplotlib==1.5.1)
 BIO_1662=/gscmnt/gc2802/halllab/idas/jira/BIO-1662
 source ${BIO_1662}/.env
