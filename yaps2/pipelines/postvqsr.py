@@ -503,6 +503,7 @@ def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
     cmd_args = merge_params(default, args)
 
     cmd = ( "{java} -jar {jar} "
+            "-nt 8 "
             "-T VariantEval "
             "-D {dbsnp} "
             "-R {reference} "
