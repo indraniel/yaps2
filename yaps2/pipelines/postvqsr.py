@@ -440,7 +440,7 @@ def bcftools_stats_summary_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def bcftools_stats(in_vcf, in_chrom, out_stats):
@@ -467,7 +467,7 @@ def bcftools_stats_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 10000000,
-        'R' : 'select[mem>10000] rusage[mem=10000]',
+        'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
     }
 
 def variant_eval_summary(in_dir, out_dir):
@@ -485,7 +485,7 @@ def variant_eval_summary_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
@@ -526,7 +526,7 @@ def gatk_variant_eval_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 10000000,
-        'R' : 'select[mem>10000] rusage[mem=10000]',
+        'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
     }
 
 def annotation_VEP_CADD(in_dir, out_dir):
@@ -544,7 +544,7 @@ def annotation_VEP_CADD_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def annotation_ExAC(in_vcf, in_chrom, out_vcf, out_log):
@@ -562,7 +562,7 @@ def annotation_ExAC_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def annotation_1000G(in_vcf, in_chrom, out_vcf, out_log):
@@ -580,7 +580,7 @@ def annotation_1000G_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def filter_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
@@ -598,7 +598,7 @@ def filter_missingness_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def normalize_decompose_unique(in_vcf, in_chrom, out_vcf, out_log):
@@ -616,7 +616,7 @@ def normalize_decompose_unique_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 15000000,
-        'R' : 'select[mem>15000] rusage[mem=15000]',
+        'R' : 'select[mem>15000 && ncpus>8] rusage[mem=15000]',
     }
 
 def gatk_select_variants_remove_ac_0(in_chrom, in_vcf, out_vcf, out_log):
@@ -647,5 +647,5 @@ def gatk_select_variants_remove_ac_0_lsf_params(email):
         'N' : None,
         'q' : "long",
         'M' : 8000000,
-        'R' : 'select[mem>8000] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
