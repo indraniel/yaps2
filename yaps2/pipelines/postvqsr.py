@@ -91,17 +91,23 @@ class Pipeline(object):
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
         # 6. CADD/VEP annotation
         # annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
-        # 7. GATK VariantEval
-        variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
-        # 7.1. Merge & Plot GATK VariantEval Stats
-        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
-        # 8. bcftools stats
+        # 7. bcftools stats
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
-        # 8.1 Merge & Plot bcftools stats
+        # 7.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
+        # 8. GATK VariantEval TiTvVariantEvaluator
+        variant_eval_titv_tasks = self.create_variant_eval_module_tasks(annotate_ExAC_tasks, 'TiTvVariantEvaluator', 8)
+        # 9. GATK VariantEval CountVariants
+        variant_eval_count_variants_tasks = self.create_variant_eval_module_tasks(annotate_ExAC_tasks, 'CountVariants', 9)
+        # 10. GATK VariantEval CompOverlap
+        variant_eval_comp_overlap_tasks = self.create_variant_eval_module_tasks(annotate_ExAC_tasks, 'CompOverlap', 10)
+        # 11. GATK VariantEval IndelSummary
+        variant_eval_indel_summary_tasks = self.create_variant_eval_module_tasks(annotate_ExAC_tasks, 'IndelSummary', 11)
+        # 12. GATK VariantEval MultiallelicSummary
+        variant_eval_multiallelic_summary_tasks = self.create_variant_eval_module_tasks(annotate_ExAC_tasks, 'MultiallelicSummary', 12)
 
     def create_bcftools_stats_summary_task(self, parent_tasks):
-        stage = '8.1-bcftools-stats-summary'
+        stage = '7.1-bcftools-stats-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -130,7 +136,7 @@ class Pipeline(object):
         return summary_task
 
     def create_variant_eval_summary_task(self, parent_tasks):
-        stage = '7.1-gatk-variant-eval-summary'
+        stage = '8.1-gatk-variant-eval-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -160,7 +166,7 @@ class Pipeline(object):
 
     def create_bcftools_stats_tasks(self, parent_tasks):
         tasks = []
-        stage = '8-bcftools-stats'
+        stage = '7-bcftools-stats'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -189,9 +195,9 @@ class Pipeline(object):
 
         return tasks
 
-    def create_variant_eval_tasks(self, parent_tasks):
+    def create_variant_eval_module_tasks(self, parent_tasks, gatk_eval_module, step_number):
         tasks = []
-        stage = '7-gatk-variant-eval'
+        stage = '{}-gatk-variant-eval-{}'.format(step_number, gatk_eval_module)
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -203,8 +209,8 @@ class Pipeline(object):
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
-            output_stats = 'chrom-{}-variant-eval.out'.format(chrom)
-            output_log = 'chrom-{}-variant-eval.log'.format(chrom)
+            output_stats = 'chrom-{}-variant-eval-{}.out'.format(chrom, gatk_eval_module)
+            output_log = 'chrom-{}-variant-eval-{}.log'.format(chrom, gatk_eval_module)
             task = {
                 'func' : gatk_variant_eval,
                 'params' : {
@@ -212,6 +218,7 @@ class Pipeline(object):
                     'in_chrom' : chrom,
                     'out_stats' : os.path.join(basedir, chrom, output_stats),
                     'out_log' : os.path.join(basedir, chrom, output_log),
+                    'eval_module' : gatk_eval_module,
                 },
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
@@ -490,7 +497,7 @@ def variant_eval_summary_lsf_params(email):
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
-def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
+def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log, eval_module):
     args = locals()
     default = {
         'java' : '/gapp/x64linux/opt/java/jre/jre1.8.0_31/bin/java',
@@ -509,11 +516,7 @@ def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
             "-R {reference} "
             "-ST Sample "
             "-noST "
-            "-EV TiTvVariantEvaluator "
-            "-EV CountVariants "
-            "-EV CompOverlap "
-            "-EV IndelSummary "
-            "-EV MultiallelicSummary "
+            "-EV {eval_module} "
             "-noEV "
             "-L {in_chrom} "
             "-eval {in_vcf} "
