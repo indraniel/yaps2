@@ -1,4 +1,4 @@
-import os, pwd
+import os, pwd, sys
 import pkg_resources
 from cosmos.api import Cosmos, Dependency, default_get_submit_args
 from yaps2.utils import to_json, merge_params, natural_key
@@ -589,10 +589,15 @@ def annotation_1000G_lsf_params(email):
 def filter_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
     args = locals()
     default = {
-        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/filter-missingness.sh'),
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/filter-missingness-sites.sh'),
+        'python_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/filter-site-missingness.py'),
+        'python_executable' : sys.executable,
     }
     cmd_args = merge_params(default, args)
-    cmd = "{script} {in_vcf} {out_vcf} {out_stats} 2>&1 >{out_log}".format(**cmd_args)
+    cmd = ( "{script} "
+            "{python_executable} {python_script} "
+            "{in_vcf} {out_vcf} {out_stats} "
+            "2>&1 >{out_log}" ).format(**cmd_args)
     return cmd
 
 def filter_missingness_lsf_params(email):

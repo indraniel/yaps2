@@ -31,6 +31,8 @@ setup(
         'scipy==0.18.1',
         'pandas==0.18.1',
         'seaborn==0.7.1',
+        'Cython==0.25.2',
+        'cyvcf2==0.6.5',
     ],
     entry_points='''
         [console_scripts]
