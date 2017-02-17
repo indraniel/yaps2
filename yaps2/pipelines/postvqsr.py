@@ -597,7 +597,7 @@ def filter_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
     cmd = ( "{script} "
             "{python_executable} {python_script} "
             "{in_vcf} {out_vcf} {out_stats} "
-            "2>&1 >{out_log}" ).format(**cmd_args)
+            ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
 def filter_missingness_lsf_params(email):
