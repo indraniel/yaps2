@@ -13,7 +13,13 @@ OUTVCF=$4
 STATS=$5
 
 set -o xtrace
-${PYTHON} ${SCRIPT} --stats=${STATS} --db=${DBSNP} --missing-threshold=2.0 ${INVCF} | ${BGZIP} -c > ${OUTVCF} \
+${PYTHON} ${SCRIPT} \
+    --soft \
+    --stats=${STATS} \
+    --db=${DBSNP} \
+    --missing-threshold=2.0 \
+    ${INVCF} \
+    | ${BGZIP} -c > ${OUTVCF} \
     && ${TABIX} -p vcf -f ${OUTVCF} \
     && ${GZIP_CMD} ${STATS};
 set +o xtrace

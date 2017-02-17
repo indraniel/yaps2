@@ -83,7 +83,7 @@ def print_stats_headers(file):
         'POS',
         'REF',
         'ALT',
-        'FILTER',
+        'ORIG_FILTER',
         'AF',
         'missing_allele_count',
         'total_allele_count',
@@ -94,8 +94,25 @@ def print_stats_headers(file):
     line = "{}{}".format('#', "\t".join(headers))
     print(line, file=file)
 
-def identify_missing_sites(vcffile, missing_threshold, display, statsfile, snp_db):
+def update_variant(variant, verdict):
+    if verdict == "pass":
+        if not variant.FILTER:
+            variant.FILTER = ['PASS']
+    else:
+        if (not variant.FILTER) or (variant.FILTER == 'PASS'):
+            variant.FILTER = ['MISSING']
+        else:
+            variant.FILTER = [ variant.FILTER, 'MISSING' ]
+
+    return variant
+
+def mark_missing_sites(vcffile, missing_threshold, soft_filter, statsfile, snp_db):
     vcf = VCF(vcffile)
+    header_param = {
+        'ID' : 'MISSING',
+        'Description' : 'failed variant site missingness threshold ({} %)'.format(missing_threshold)
+    }
+    vcf.add_filter_to_header(header_param)
     out = Writer('-', vcf)
     (total_sites, noted_sites) = (0, 0)
     with open(statsfile, "w") as fstats:
@@ -105,29 +122,31 @@ def identify_missing_sites(vcffile, missing_threshold, display, statsfile, snp_d
             (missing_pct, missing, total) = compute_missingness(variant)
             verdict = variant_missing_criteria(missing_threshold, missing_pct)
             record_stats(fstats, variant, verdict, missing_pct, missing, total, snp_db)
-            if verdict == display:
+            variant = update_variant(variant, verdict)
+            if verdict == "pass":
                 noted_sites += 1
+                out.write_record(variant)
+            elif verdict == "fail" and soft_filter:
                 out.write_record(variant)
     out.close()
     msg = "After filtering, kept {} out of a possible {} Sites ({})"
-    msg = msg.format(noted_sites, total_sites, display)
+    msg = msg.format(noted_sites, total_sites, 'pass')
     print(msg, file=sys.stderr)
 
 @click.command()
 @click.option('--missing-threshold', type=float, default=2.0,
         help="the missingness threshold to discard [default: 2.0]")
-@click.option('--show-fail', is_flag=True, default=False,
-        help="write the sites that FAIL [are above] the missingness threshold")
+@click.option('--soft', is_flag=True, default=False,
+        help="soft filtering -- keep all variants and update FILTER field [default: False]")
 @click.option('--stats', default="stats.out", type=click.Path(),
         help="an output file to write site stats to [default: 'stats.out']")
 @click.option('--db', required=True, type=click.Path(),
         help="a database [e.g. 'dbSNP', or 'HapMap3'] to check membership")
 @click.argument('vcfs', nargs=-1, type=click.Path())
-def main(missing_threshold, show_fail, stats, db, vcfs):
-    display = 'pass' if show_fail == False else 'fail'
+def main(missing_threshold, stats, db, soft, vcfs):
     snp_db = load_snp_database(db)
     for vcf in vcfs:
-        identify_missing_sites(vcf, missing_threshold, display, stats, snp_db)
+        mark_missing_sites(vcf, missing_threshold, soft, stats, snp_db)
     print("All Done!", file=sys.stderr)
 
 if __name__ == "__main__":
