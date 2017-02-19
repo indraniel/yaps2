@@ -81,27 +81,31 @@ class Pipeline(object):
     def construct_pipeline(self):
         # 1. remove unused alternates
         remove_ac_0_tasks = self.create_remove_ac_0_tasks()
-        # 2. denormalize, decompose, and uniq
+        # 2. calculate sample missingness (counting phase)
+#        count_sample_missingness_tasks = self.count_sample_missingness_tasks(remove_ac_0_tasks)
+        # 2.1 calculate sample missingness (merge and calculation phase)
+#        calculate_sample_missingness_tasks = self.calculate_sample_missingness_tasks(count_sample_missingness_tasks)
+        # 3. denormalize, decompose, and uniq
         dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
-        # 3. filter missingess
-        filter_missingness_tasks = self.create_filter_missingness_tasks(dnu_tasks)
-        # 4. annotate with 1000G
-        annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_missingness_tasks)
-        # 5. annotate with ExAC
+        # 4. filter missingess
+        filter_variant_missingness_tasks = self.create_filter_variant_missingness_tasks(dnu_tasks)
+        # 5. annotate with 1000G
+        annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_variant_missingness_tasks)
+        # 6. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
-        # 6. CADD/VEP annotation
+        # 7. CADD/VEP annotation
         # annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
-        # 7. GATK VariantEval
+        # 8. GATK VariantEval
         variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
-        # 7.1. Merge & Plot GATK VariantEval Stats
+        # 8.1. Merge & Plot GATK VariantEval Stats
         variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
-        # 8. bcftools stats
+        # 9. bcftools stats
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
-        # 8.1 Merge & Plot bcftools stats
+        # 9.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
 
     def create_bcftools_stats_summary_task(self, parent_tasks):
-        stage = '8.1-bcftools-stats-summary'
+        stage = '9.1-bcftools-stats-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -130,7 +134,7 @@ class Pipeline(object):
         return summary_task
 
     def create_variant_eval_summary_task(self, parent_tasks):
-        stage = '7.1-gatk-variant-eval-summary'
+        stage = '8.1-gatk-variant-eval-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -160,7 +164,7 @@ class Pipeline(object):
 
     def create_bcftools_stats_tasks(self, parent_tasks):
         tasks = []
-        stage = '8-bcftools-stats'
+        stage = '9-bcftools-stats'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -191,7 +195,7 @@ class Pipeline(object):
 
     def create_variant_eval_tasks(self, parent_tasks):
         tasks = []
-        stage = '7-gatk-variant-eval'
+        stage = '8-gatk-variant-eval'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -223,7 +227,7 @@ class Pipeline(object):
         return tasks
 
     def create_vep_cadd_annotation_task(self, parent_tasks):
-        stage = '6-vep-cadd-annotation'
+        stage = '7-vep-cadd-annotation'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -253,7 +257,7 @@ class Pipeline(object):
 
     def create_ExAC_annotation_tasks(self, parent_tasks):
         tasks = []
-        stage = '5-annotate-w-ExAC'
+        stage = '6-annotate-w-ExAC'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -286,7 +290,7 @@ class Pipeline(object):
 
     def create_1000G_annotation_tasks(self, parent_tasks):
         tasks = []
-        stage = '4-annotate-w-1000G'
+        stage = '5-annotate-w-1000G'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -317,13 +321,13 @@ class Pipeline(object):
 
         return tasks
 
-    def create_filter_missingness_tasks(self, parent_tasks):
+    def create_filter_variant_missingness_tasks(self, parent_tasks):
         tasks = []
-        stage = '3-filter-missingness'
+        stage = '4-filter-variant-missingness'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
-                filter_missingness_lsf_params,
+                filter_variant_missingness_lsf_params,
                 self.config.email,
                 self.config.docker
         )
@@ -335,7 +339,7 @@ class Pipeline(object):
             output_stats = '{chrom}.stats.missingness.out'.format(chrom=chrom)
             output_log = 'filter-missingness-{}.log'.format(chrom)
             task = {
-                'func' : filter_missingness,
+                'func' : filter_variant_missingness,
                 'params' : {
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
@@ -354,7 +358,7 @@ class Pipeline(object):
 
     def create_decompose_normalize_unique_tasks(self, parent_tasks):
         tasks = []
-        stage = '2-decompose-normalize-uniq'
+        stage = '3-decompose-normalize-uniq'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -586,7 +590,7 @@ def annotation_1000G_lsf_params(email):
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
-def filter_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
+def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
     args = locals()
     default = {
         'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/filter-missingness-sites.sh'),
@@ -600,7 +604,7 @@ def filter_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
             ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
-def filter_missingness_lsf_params(email):
+def filter_variant_missingness_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
