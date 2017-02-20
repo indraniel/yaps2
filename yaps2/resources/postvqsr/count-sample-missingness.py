@@ -40,9 +40,6 @@ def merge_stats(vcfstats, totals):
         totalc = totals['missingness_counts']
         mergedc = merged['missingness_counts']
 
-        for sample in vcfc:
-            mergedc[sample] = vcfc[sample] + totalc.get(sample, 0)
-
         # for now assume all the input vcfs have the exact same samples
         # error out if there are samples in the overall total dictionary
         # that are not in the individual vcf stats
@@ -51,6 +48,9 @@ def merge_stats(vcfstats, totals):
             msg = ( '[err] The following {} samples are unaccounted for. '
                     'Please investigate!\n{}\n' )
             sys.exit(msg.format(len(error_samples), error_samples))
+
+        for sample in vcfc:
+            mergedc[sample] = vcfc[sample] + totalc.get(sample, 0)
     else:
         merged['missingness_counts'] = vcfstats['missingness_counts']
 
