@@ -12,6 +12,13 @@ import click
 from cyvcf2 import VCF, Writer
 import numpy as np
 
+def logit(msg):
+    ts = time.strftime("[ %Y-%m-%d %T ]", datetime.datetime.now().timetuple())
+    fullmsg = "{} {}".format(ts, msg)
+    print(fullmsg)
+    sys.stdout.flush()
+    sys.stderr.flush()
+
 def calculate_sample_missingness(vcffile):
     vcf = VCF(vcffile)
     missing_counts = np.zeros(len(vcf.samples)).astype(np.uint64)
@@ -68,10 +75,11 @@ def dump_stats(outfile, stats):
 def main(out, vcfs):
     totals = {}
     for vcf in vcfs:
+        logit("Processing {}".format(vcf))
         stats = calculate_sample_missingness(vcf)
         totals = merge_stats(stats, totals)
     dump_stats(out, totals)
-    print("All Done!", file=sys.stderr)
+    logit("All Done!")
 
 if __name__ == "__main__":
     main()
