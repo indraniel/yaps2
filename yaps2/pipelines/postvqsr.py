@@ -82,9 +82,9 @@ class Pipeline(object):
         # 1. remove unused alternates
         remove_ac_0_tasks = self.create_remove_ac_0_tasks()
         # 2. calculate sample missingness (counting phase)
-#        count_sample_missingness_tasks = self.count_sample_missingness_tasks(remove_ac_0_tasks)
+        count_sample_missingness_tasks = self.create_count_sample_missingness_tasks(remove_ac_0_tasks)
         # 2.1 calculate sample missingness (merge and calculation phase)
-#        calculate_sample_missingness_tasks = self.calculate_sample_missingness_tasks(count_sample_missingness_tasks)
+        calculate_sample_missingness_task = self.create_calculate_sample_missingness_task(count_sample_missingness_tasks)
         # 3. denormalize, decompose, and uniq
         dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
         # 4. filter missingess
@@ -389,6 +389,74 @@ class Pipeline(object):
 
         return tasks
 
+    def create_calculate_sample_missingness_task(self, parent_tasks):
+        stage = '2.1-calculate-sample-missingness'
+        output_dir = os.path.join(self.config.rootdir, stage)
+
+        prior_stage_name = parent_tasks[0].stage.name
+        input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+        input_json_wildcard_path = os.path.join(input_dir, '*', '*.json')
+
+        lsf_params = get_lsf_params(
+                calculate_sample_missingness_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
+
+        task = {
+            'func' : calculate_sample_missingness,
+            'params' : {
+                'in_json' : input_json_wildcard_path,
+                'out_stats' : os.path.join(output_dir, 'sample-missingness-pct.dat'),
+                'out_log' : os.path.join(output_dir, 'sample-missingness-pct.dat.log'),
+            },
+            'stage_name' : stage,
+            'uid' : '1-22',
+            'drm_params' : lsf_params_json,
+            'parents' : parent_tasks,
+        }
+
+        summary_task = self.workflow.add_task(**task)
+        return summary_task
+
+    def create_count_sample_missingness_tasks(self, parent_tasks):
+        tasks = []
+        stage = '2-count-sample-missingness'
+        basedir = os.path.join(self.config.rootdir, stage)
+
+        lsf_params = get_lsf_params(
+                count_sample_missingness_lsf_params,
+                self.config.email,
+                self.config.docker
+        )
+        lsf_params_json = to_json(lsf_params)
+
+        for ptask in parent_tasks:
+            chrom = ptask.params['in_chrom']
+
+            # only count missing genotypes on chromosomes 1-22 (not X, Y, or MT)
+            if not chrom[0].isdigit() : continue
+
+            output_json = '{chrom}-sample-missingness-counts.json'.format(chrom=chrom)
+            output_log = '{}-sample-missingness-counts.log'.format(chrom)
+            task = {
+                'func' : count_sample_missingness,
+                'params' : {
+                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_chrom' : chrom,
+                    'out_json' : os.path.join(basedir, chrom, output_json),
+                    'out_log' : os.path.join(basedir, chrom, output_log),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=chrom),
+                'drm_params' : lsf_params_json,
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
+
     def create_remove_ac_0_tasks(self):
         tasks = []
         stage = '1-select-variants-ac-0-removal'
@@ -629,6 +697,44 @@ def normalize_decompose_unique_lsf_params(email):
         'q' : "long",
         'M' : 15000000,
         'R' : 'select[mem>15000 && ncpus>8] rusage[mem=15000]',
+    }
+
+def calculate_sample_missingness(in_json, out_stats, out_log):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/calculate-overall-sample-missingness.py'),
+        'python' : sys.executable,
+    }
+    cmd_args = merge_params(default, args)
+    cmd = "{python} {script} --out={out_stats} {in_json} >{out_log} 2>&1".format(**cmd_args)
+    return cmd
+
+def calculate_sample_missingness_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
+    }
+
+def count_sample_missingness(in_vcf, in_chrom, out_json, out_log):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/count-sample-missingness.py'),
+        'python' : sys.executable,
+    }
+    cmd_args = merge_params(default, args)
+    cmd = "{python} {script} --out={out_json} {in_vcf} >{out_log} 2>&1".format(**cmd_args)
+    return cmd
+
+def count_sample_missingness_lsf_params(email):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : "long",
+        'M' : 8000000,
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def gatk_select_variants_remove_ac_0(in_chrom, in_vcf, out_vcf, out_log):
