@@ -22,8 +22,6 @@ def calculate_sample_missingness(vcffile):
         total_passing_variants += 1
         genotypes = variant.gt_bases
         mask = (genotypes == './.') | (genotypes == '.|.')
-#        if mask[2] == True:
-#            print("{} -- {} -- {} -- {}".format(vcf.samples[2], variant.FILTER, variant.POS, genotypes[2]))
         missing_counts = missing_counts + mask.astype(np.uint64)
 
     sample_missingness = dict(zip(vcf.samples, missing_counts))
