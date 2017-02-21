@@ -32,10 +32,12 @@ def cli():
               help='Restart Pipeline from scratch')
 @click.option('--docker/--no-docker', default=False,
               help='Use the "docker-ize" pipeline [default=False or --no-docker]')
-def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart, docker):
+@click.option('--skip-confirm', default=False, is_flag=True,
+              help='Do not prompt when resuming or restarting a pipeline [default=False]')
+def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart, docker, skip_confirm):
     from yaps2.pipelines.postvqsr import Config, Pipeline
     config = Config(job_db, input_vcfs, project_name, email, workspace, docker)
-    workflow = Pipeline(config, drm, restart)
+    workflow = Pipeline(config, drm, restart, skip_confirm)
     workflow.run()
 
 @cli.command(short_help="Mendelian Inheritance Error [MIE] Analysis Pipeline")

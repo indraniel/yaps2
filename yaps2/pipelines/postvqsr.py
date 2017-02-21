@@ -44,7 +44,7 @@ class Config(object):
         return chroms
 
 class Pipeline(object):
-    def __init__(self, config, drm, restart):
+    def __init__(self, config, drm, restart, skip_confirm):
         self.config = config
 
         self.cosmos = Cosmos(
@@ -64,6 +64,7 @@ class Pipeline(object):
             self.config.project_name,
             primary_log_path=primary_logfile,
             restart=restart,
+            skip_confirm=skip_confirm,
         )
 
         self.setup_pipeline()
