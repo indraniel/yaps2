@@ -666,10 +666,15 @@ def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
         'python_executable' : sys.executable,
     }
     cmd_args = merge_params(default, args)
-    cmd = ( "{script} "
-            "{python_executable} {python_script} "
-            "{in_vcf} {out_vcf} {out_stats} "
-            ">{out_log} 2>&1" ).format(**cmd_args)
+
+    if in_chrom.startswith('Y') or in_chrom.startswith('y'):
+        cmd_args['out_vcf'] = os.path.dirname(out_vcf)
+        cmd = "/bin/cp -v {in_vcf}* {out_vcf} >{out_log} 2>&1".format(**cmd_args)
+    else:
+        cmd = ( "{script} "
+                "{python_executable} {python_script} "
+                "{in_vcf} {out_vcf} {out_stats} "
+                ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
 def filter_variant_missingness_lsf_params(email):
