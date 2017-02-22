@@ -513,7 +513,7 @@ def bcftools_stats_summary_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -540,7 +540,7 @@ def bcftools_stats_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 10000000,
         'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
     }
@@ -558,7 +558,7 @@ def variant_eval_summary_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -600,7 +600,7 @@ def gatk_variant_eval_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 10000000,
         'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
     }
@@ -618,7 +618,7 @@ def annotation_VEP_CADD_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -636,7 +636,7 @@ def annotation_ExAC_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -654,7 +654,7 @@ def annotation_1000G_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -682,7 +682,7 @@ def filter_variant_missingness_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -700,9 +700,9 @@ def normalize_decompose_unique_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
-        'M' : 15000000,
-        'R' : 'select[mem>15000 && ncpus>8] rusage[mem=15000]',
+        'q' : "ccdg",
+        'M' : 32000000,
+        'R' : 'select[mem>32000 && ncpus>8] rusage[mem=32000]',
     }
 
 def calculate_sample_missingness(in_json, out_stats, out_log):
@@ -719,7 +719,7 @@ def calculate_sample_missingness_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -738,7 +738,7 @@ def count_sample_missingness_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -769,7 +769,7 @@ def gatk_select_variants_remove_ac_0_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "long",
+        'q' : "ccdg",
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
