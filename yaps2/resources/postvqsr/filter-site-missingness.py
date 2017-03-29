@@ -106,7 +106,7 @@ def update_variant(variant, verdict):
 
     return variant
 
-def mark_missing_sites(vcffile, missing_threshold, soft_filter, statsfile, snp_db):
+def mark_missing_sites(vcffile, region, missing_threshold, soft_filter, statsfile, snp_db):
     vcf = VCF(vcffile)
     header_param = {
         'ID' : 'MISSING',
@@ -117,7 +117,7 @@ def mark_missing_sites(vcffile, missing_threshold, soft_filter, statsfile, snp_d
     (total_sites, noted_sites) = (0, 0)
     with open(statsfile, "w") as fstats:
         print_stats_headers(fstats)
-        for variant in vcf:
+        for variant in vcf(region):
             total_sites += 1
             (missing_pct, missing, total) = compute_missingness(variant)
             verdict = variant_missing_criteria(missing_threshold, missing_pct)
@@ -142,11 +142,13 @@ def mark_missing_sites(vcffile, missing_threshold, soft_filter, statsfile, snp_d
         help="an output file to write site stats to [default: 'stats.out']")
 @click.option('--db', required=True, type=click.Path(),
         help="a database [e.g. 'dbSNP', or 'HapMap3'] to check membership")
+@click.option('--region', default=None, type=click.STRING,
+        help="a chromosome region to limit to [default: None]")
 @click.argument('vcfs', nargs=-1, type=click.Path())
-def main(missing_threshold, stats, db, soft, vcfs):
+def main(missing_threshold, region, stats, db, soft, vcfs):
     snp_db = load_snp_database(db)
     for vcf in vcfs:
-        mark_missing_sites(vcf, missing_threshold, soft, stats, snp_db)
+        mark_missing_sites(vcf, region, missing_threshold, soft, stats, snp_db)
     print("All Done!", file=sys.stderr)
 
 if __name__ == "__main__":

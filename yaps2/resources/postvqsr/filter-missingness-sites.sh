@@ -11,6 +11,7 @@ SCRIPT=$2
 INVCF=$3
 OUTVCF=$4
 STATS=$5
+CHROM=$6
 
 set -o xtrace
 ${PYTHON} ${SCRIPT} \
@@ -18,6 +19,7 @@ ${PYTHON} ${SCRIPT} \
     --stats=${STATS} \
     --db=${DBSNP} \
     --missing-threshold=2.0 \
+    --region="${CHROM}" \
     ${INVCF} \
     | ${BGZIP} -c > ${OUTVCF} \
     && ${TABIX} -p vcf -f ${OUTVCF} \

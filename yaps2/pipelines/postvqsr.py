@@ -674,7 +674,7 @@ def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
     else:
         cmd = ( "{script} "
                 "{python_executable} {python_script} "
-                "{in_vcf} {out_vcf} {out_stats} "
+                "{in_vcf} {out_vcf} {out_stats} {in_chrom} "
                 ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
