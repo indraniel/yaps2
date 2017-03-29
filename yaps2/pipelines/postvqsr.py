@@ -693,7 +693,7 @@ def normalize_decompose_unique(in_vcf, in_chrom, out_vcf, out_log):
         'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/run-decompose.sh'),
     }
     cmd_args = merge_params(default, args)
-    cmd = "{script} {in_vcf} {out_vcf} >{out_log} 2>&1".format(**cmd_args)
+    cmd = "{script} {in_vcf} {out_vcf} {in_chrom} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
 def normalize_decompose_unique_lsf_params(email):
