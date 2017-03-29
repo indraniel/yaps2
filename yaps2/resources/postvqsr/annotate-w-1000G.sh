@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BCFTOOLS=/gsc/bin/bcftools1.2
-TABIX=/gsc/bin/tabix
+TABIX=/gscmnt/gc2802/halllab/idas/software/vep/local/htslib-1.3.2/bin/tabix
 
 BIO_1984=/gscmnt/gc2802/halllab/idas/jira/BIO-1984
 
