@@ -25,7 +25,7 @@ setup(
         'https://github.com/brentp/cyvcf2/tarball/276e642245777523b3acd42075a2857da90f1bf3#egg=cyvcf2-0.7.0',
     ],
     install_requires=[
-        'cosmos-wfm==2.0.10.indraniel4',
+        'cosmos-wfm==2.0.10.indraniel4https',
         'click==6.7',
         'clint==0.5.1',
         'matplotlib==1.5.3',
