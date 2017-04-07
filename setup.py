@@ -21,7 +21,7 @@ setup(
     license=license,
     url='https://github.com/indraniel/yaps2',
     dependency_links=[
-        'https://github.com/indraniel/COSMOS2/tarball/enable-lsf-rebase#egg=cosmos-wfm-2.0.10.indraniel4'
+        'https://github.com/indraniel/COSMOS2/tarball/enable-lsf-rebase#egg=cosmos-wfm-2.0.10.indraniel4',
         'https://github.com/brentp/cyvcf2/tarball/276e642245777523b3acd42075a2857da90f1bf3#egg=cyvcf2-0.7.0',
     ],
     install_requires=[
