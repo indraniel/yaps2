@@ -10,7 +10,7 @@ _[yaps][0] is based on [ruffus][1].  This repository, [yaps2][3], is based on a 
 
 ## Deployment
 
-    pip install --process-dependency-links git+https://github.com/indraniel/yaps2.git
+    pip install --no-cache-dir --process-dependency-links git+https://github.com/indraniel/yaps2.git
     # pygraphviz needs some extra install help
     pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/" --force-reinstall --upgrade
 
