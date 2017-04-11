@@ -826,6 +826,6 @@ def remove_symbolic_deletion_alleles_lsf_params(email):
         'N' : None,
         'q' : "ccdg",
         'M' : 4000000,
-        'R' : 'select[mem>8000] && ncpus>8] rusage[mem=8000]',
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
