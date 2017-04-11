@@ -492,7 +492,7 @@ class Pipeline(object):
 
         return tasks
 
-    def create_remove_symbolic_deletion_tasks(self):
+    def create_remove_symbolic_deletion_tasks(self, parent_tasks):
         tasks = []
         stage = '4-remove-symbolic-alleles'
         basedir = os.path.join(self.config.rootdir, stage)
@@ -504,20 +504,22 @@ class Pipeline(object):
                 )
         lsf_params_json = to_json(lsf_params)
 
-        for chrom in self.config.chroms:
-            vcf = self.config.vcfs[chrom]
+        for ptask in parent_tasks:
+            vcf = ptask.params['in_chrom']
             output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
             output_log = 'remove-symbolic-alleles-chrom-{}-gatk.log'.format(chrom)
             task = {
                     'func'   : remove_symbolic_deletion_alleles,
                     'params' : {
-                        'in_vcf' : vcf,
+                        'in_vcf' : ptask.params['out_vcf'],
+                        'in_chrom' : chrom,
                         'out_vcf' : os.path.join(basedir, chrom, output_vcf),
                         'out_log' : os.path.join(basedir, chrom, output_log),
                         },
                     'stage_name' : stage,
                     'uid' : '{chrom}'.format(chrom=chrom),
                     'drm_params' : lsf_params_json,
+                    'parents' : [ptask],
                     }
             tasks.append( self.workflow.add_task(**task) )
 
@@ -807,7 +809,7 @@ def gatk_select_variants_remove_ac_0_lsf_params(email):
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
-def remove_symbolic_deletion_alleles(in_vcf, out_vcf, out_log):
+def remove_symbolic_deletion_alleles(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
         'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/remove-symbolic.sh'),
