@@ -9,7 +9,7 @@ TABIX=/gscmnt/gc2719/halllab/bin/tabix
 INVCF=$1
 OUTVCF=$2
 
-if [ -a $OUTVCF ]
+if [ -e $OUTVCF ]
 then
     exit 0
 fi
