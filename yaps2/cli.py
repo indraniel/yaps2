@@ -42,6 +42,33 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, restart, d
     workflow = Pipeline(config, drm, restart, skip_confirm)
     workflow.run(task_flush)
 
+@cli.command(short_help="post-VQSR data pipeline for Build 38")
+@click.option('--workspace', required=True, type=click.Path(),
+              help='A directory to place outputs into')
+@click.option('--job-db', default=None, type=click.Path(),
+              help="Path to LSF job sqlite DB [default='<workspace>/.job_queue.db']")
+@click.option('--input-vcfs', required=True, type=click.Path(exists=True),
+              help='A file of chromosomal VCFs to process')
+@click.option('--project-name', default='yaps2.default', type=click.STRING,
+              help='A prefix used to name batch jobs')
+@click.option('--email', default=None, type=click.STRING,
+              help='An email used to notify about batch jobs [default=userid@genome.wustl.edu]')
+@click.option('--drm', default='lsf', type=click.Choice(['local', 'lsf']),
+              help='Job Mode -- [default=lsf]')
+@click.option('--restart/--no-restart', default=False,
+              help='Restart Pipeline from scratch')
+@click.option('--docker/--no-docker', default=False,
+              help='Use the "docker-ize" pipeline [default=False or --no-docker]')
+@click.option('--skip-confirm', default=False, is_flag=True,
+              help='Do not prompt when resuming or restarting a pipeline [default=False]')
+@click.option('--task-flush', default=False, is_flag=True,
+              help='Update the task database table as soon as a job is submitted [default=False]')
+def postvqsr38(job_db, input_vcfs, project_name, email, workspace, drm, restart, docker, skip_confirm, task_flush):
+    from yaps2.pipelines.postvqsr38 import Config, Pipeline
+    config = Config(job_db, input_vcfs, project_name, email, workspace, docker)
+    workflow = Pipeline(config, drm, restart, skip_confirm)
+    workflow.run(task_flush)
+
 @cli.command(short_help="Mendelian Inheritance Error [MIE] Analysis Pipeline")
 @click.option('--workspace', required=True, type=click.Path(),
               help='A directory to place outputs into')
