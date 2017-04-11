@@ -505,7 +505,7 @@ class Pipeline(object):
         lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
-            vcf = ptask.params['in_chrom']
+            chrom = ptask.params['in_chrom']
             output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
             output_log = 'remove-symbolic-alleles-chrom-{}-gatk.log'.format(chrom)
             task = {
