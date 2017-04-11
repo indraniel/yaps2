@@ -88,25 +88,27 @@ class Pipeline(object):
         calculate_sample_missingness_task = self.create_calculate_sample_missingness_task(count_sample_missingness_tasks)
         # 3. denormalize, decompose, and uniq
         dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
-        # 4. filter missingess
-        filter_variant_missingness_tasks = self.create_filter_variant_missingness_tasks(dnu_tasks)
-        # 5. annotate with 1000G
+        # 4. remove symbolic alleles
+        rsa_tasks = self.create_remove_symbolic_deletion_tasks(dnu_tasks)
+        # 5. filter missingess
+        filter_variant_missingness_tasks = self.create_filter_variant_missingness_tasks(rsa_tasks)
+        # 6. annotate with 1000G
         annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_variant_missingness_tasks)
-        # 6. annotate with ExAC
+        # 7. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
-        # 7. CADD/VEP annotation
+        # 8. CADD/VEP annotation
         # annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
-        # 8. GATK VariantEval
+        # 9. GATK VariantEval
         variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
-        # 8.1. Merge & Plot GATK VariantEval Stats
+        # 9.1. Merge & Plot GATK VariantEval Stats
         variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
-        # 9. bcftools stats
+        # 10. bcftools stats
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
-        # 9.1 Merge & Plot bcftools stats
+        # 10.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
 
     def create_bcftools_stats_summary_task(self, parent_tasks):
-        stage = '9.1-bcftools-stats-summary'
+        stage = '10.1-bcftools-stats-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -135,7 +137,7 @@ class Pipeline(object):
         return summary_task
 
     def create_variant_eval_summary_task(self, parent_tasks):
-        stage = '8.1-gatk-variant-eval-summary'
+        stage = '9.1-gatk-variant-eval-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -165,7 +167,7 @@ class Pipeline(object):
 
     def create_bcftools_stats_tasks(self, parent_tasks):
         tasks = []
-        stage = '9-bcftools-stats'
+        stage = '10-bcftools-stats'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -196,7 +198,7 @@ class Pipeline(object):
 
     def create_variant_eval_tasks(self, parent_tasks):
         tasks = []
-        stage = '8-gatk-variant-eval'
+        stage = '9-gatk-variant-eval'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -228,7 +230,7 @@ class Pipeline(object):
         return tasks
 
     def create_vep_cadd_annotation_task(self, parent_tasks):
-        stage = '7-vep-cadd-annotation'
+        stage = '8-vep-cadd-annotation'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -258,7 +260,7 @@ class Pipeline(object):
 
     def create_ExAC_annotation_tasks(self, parent_tasks):
         tasks = []
-        stage = '6-annotate-w-ExAC'
+        stage = '7-annotate-w-ExAC'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -291,7 +293,7 @@ class Pipeline(object):
 
     def create_1000G_annotation_tasks(self, parent_tasks):
         tasks = []
-        stage = '5-annotate-w-1000G'
+        stage = '6-annotate-w-1000G'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -324,7 +326,7 @@ class Pipeline(object):
 
     def create_filter_variant_missingness_tasks(self, parent_tasks):
         tasks = []
-        stage = '4-filter-variant-missingness'
+        stage = '5-filter-variant-missingness'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -486,6 +488,37 @@ class Pipeline(object):
                 'uid' : '{chrom}'.format(chrom=chrom),
                 'drm_params' : lsf_params_json,
             }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
+
+    def create_remove_symbolic_deletion_tasks(self):
+        tasks = []
+        stage = '4-remove-symbolic-alleles'
+        basedir = os.path.join(self.config.rootdir, stage)
+
+        lsf_params = get_lsf_params(
+                remove_symbolic_deletion_alleles_lsf_params,
+                self.config.email,
+                self.config.docker
+                )
+        lsf_params_json = to_json(lsf_params)
+
+        for chrom in self.config.chroms:
+            vcf = self.config.vcfs[chrom]
+            output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
+            output_log = 'remove-symbolic-alleles-chrom-{}-gatk.log'.format(chrom)
+            task = {
+                    'func'   : remove_symbolic_deletion_alleles,
+                    'params' : {
+                        'in_vcf' : vcf,
+                        'out_vcf' : os.path.join(basedir, chrom, output_vcf),
+                        'out_log' : os.path.join(basedir, chrom, output_log),
+                        },
+                    'stage_name' : stage,
+                    'uid' : '{chrom}'.format(chrom=chrom),
+                    'drm_params' : lsf_params_json,
+                    }
             tasks.append( self.workflow.add_task(**task) )
 
         return tasks
@@ -773,3 +806,24 @@ def gatk_select_variants_remove_ac_0_lsf_params(email):
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
+
+def remove_symbolic_deletion_alleles(in_vcf, out_vcf, out_log):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/remove-symbolic.sh'),
+    }
+
+    cmd_args = merge_params(default, args)
+
+    cmd = "{script} {in_vcf} {out_vcf} >{out_log} 2>&1".format(**cmd_args)
+    return cmd
+
+def remove_symbolic_deletion_alleles_lsf_params(email):
+    return {
+        'u' : email,
+        'N' : None,
+        'q' : "ccdg",
+        'M' : 4000000,
+        'R' : 'select[mem>8000] && ncpus>8] rusage[mem=8000]',
+    }
+
