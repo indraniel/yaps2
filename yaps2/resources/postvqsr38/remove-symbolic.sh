@@ -14,5 +14,5 @@ then
 fi
 
 TMPVCF=$OUTVCF.temp
-${BCFTOOLS} view -e '%TYPE="other"' $INVCF --output-type z --output-file $TMPVCF \
+zcat $INVCF | awk '$5!="<*:DEL>" && $5!="*"' | bgzip -c > $TMPVCF \
     && ${TABIX} -p vcf -f $TMPVCF && mv $TMPVCF.tbi $OUTVCF.tbi && mv $TMPVCF $OUTVCF
