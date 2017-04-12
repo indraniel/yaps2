@@ -14,5 +14,5 @@ then
 fi
 
 TMPVCF=$OUTVCF.temp
-${BCFTOOLS} view -e '%TYPE="other"' $INVCF --output-type z --output-file $TMPVCF \
+${BCFTOOLS} view -e '%TYPE="other" || ALT="*"' $INVCF --output-type z --output-file $TMPVCF \
     && ${TABIX} -p vcf -f $TMPVCF && mv $TMPVCF.tbi $OUTVCF.tbi && mv $TMPVCF $OUTVCF
