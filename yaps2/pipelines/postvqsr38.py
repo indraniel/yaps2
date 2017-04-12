@@ -507,7 +507,7 @@ class Pipeline(object):
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
             output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
-            output_log = 'remove-symbolic-alleles-chrom-{}-gatk.log'.format(chrom)
+            output_log = 'remove-symbolic-alleles-chrom-{}.log'.format(chrom)
             task = {
                     'func'   : remove_symbolic_deletion_alleles,
                     'params' : {
