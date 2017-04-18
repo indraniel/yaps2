@@ -132,7 +132,7 @@ function run_cadd {
     export PATH=${perl_path}:${awk_path}:${htslib_path}:${PATH}
 
     local cadd_dir=/gscmnt/gc2802/halllab/abelhj/CADD/CADD_v1.2
-    cadd_score_script=${cadd_dir}/bin/score.sh
+    local cadd_score_script=${cadd_dir}/bin/score.sh
 
     local cmd="/bin/bash ${cadd_score_script} ${invcf} ${tmptsv} && mv ${tmptsv} ${tsv}"
     run_cmd "${cmd}"
@@ -158,7 +158,7 @@ function paste_cadd {
     local cmd1="
     cat <(${PYTHON} ${merge_cadd_script} -H <(zcat ${vepvcf}) <(zcat ${tsvfile})) \
         <(paste <(${PYTHON} ${merge_cadd_script} --no-header <(zcat ${vepvcf}) <(zcat ${tsvfile})) \
-                <(zcat ${origvcf} | ${AWK} '{if(\$5!=\".\") print \$0}' | cut -f9- | grep -v '^#')) \
+                <(zcat ${origvcf} | ${AWK} '{if(\$5!=\".\") print \$0}' | grep -v '^##' | cut -f9- )) \
         | ${BGZIP} -c \
         > ${tmpvcf}
     "
