@@ -4,12 +4,13 @@ from cosmos.api import Cosmos, Dependency, default_get_submit_args
 from yaps2.utils import to_json, merge_params, natural_key
 
 class Config(object):
-    def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker):
+    def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker, queue):
         self.email = email
         self.db = job_db
         self.project_name = project_name
         self.rootdir = workspace
         self.docker = docker
+        self.drm_queue = queue
 
         self.ensure_rootdir()
 
@@ -115,7 +116,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 bcftools_stats_summary_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -144,7 +146,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 variant_eval_summary_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -171,7 +174,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 bcftools_stats_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -202,7 +206,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 gatk_variant_eval_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -235,7 +240,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 annotation_vep_cadd_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -268,7 +274,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 annotation_ExAC_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -301,7 +308,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 annotation_1000G_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -334,7 +342,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 filter_variant_missingness_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -369,7 +378,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 normalize_decompose_unique_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -405,7 +415,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 calculate_sample_missingness_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -433,7 +444,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 count_sample_missingness_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -470,7 +482,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 gatk_select_variants_remove_ac_0_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -495,8 +508,8 @@ class Pipeline(object):
         return tasks
 
 # C M D S #####################################################################
-def get_lsf_params(task_lsf_fn, email, docker):
-    lsf_params = task_lsf_fn(email)
+def get_lsf_params(task_lsf_fn, email, docker, queue):
+    lsf_params = task_lsf_fn(email, queue)
     if docker:
         lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment:23)'"
         lsf_params['q'] = "research-hpc"
@@ -513,11 +526,11 @@ def bcftools_stats_summary(in_dir, out_dir):
     cmd = "{script} {in_dir} {out_dir}".format(**cmd_args)
     return cmd
 
-def bcftools_stats_summary_lsf_params(email):
+def bcftools_stats_summary_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -540,11 +553,11 @@ def bcftools_stats(in_vcf, in_chrom, out_stats):
 
     return cmd
 
-def bcftools_stats_lsf_params(email):
+def bcftools_stats_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 10000000,
         'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
     }
@@ -558,11 +571,11 @@ def variant_eval_summary(in_dir, out_dir):
     cmd = "{script} {in_dir} {out_dir}".format(**cmd_args)
     return cmd
 
-def variant_eval_summary_lsf_params(email):
+def variant_eval_summary_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -600,11 +613,11 @@ def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
 
     return cmd
 
-def gatk_variant_eval_lsf_params(email):
+def gatk_variant_eval_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 10000000,
         'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
     }
@@ -619,7 +632,7 @@ def annotation_vep_cadd(in_vcf, in_chrom, out_vcf, out_log):
     cmd = "{main_script} {in_vcf} {out_vcf} {merge_script} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
-def annotation_vep_cadd_lsf_params(email):
+def annotation_vep_cadd_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
@@ -637,11 +650,11 @@ def annotation_ExAC(in_vcf, in_chrom, out_vcf, out_log):
     cmd = "{script} {in_vcf} {out_vcf} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
-def annotation_ExAC_lsf_params(email):
+def annotation_ExAC_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -655,11 +668,11 @@ def annotation_1000G(in_vcf, in_chrom, out_vcf, out_log):
     cmd = "{script} {in_vcf} {out_vcf} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
-def annotation_1000G_lsf_params(email):
+def annotation_1000G_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -683,11 +696,11 @@ def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
                 ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
-def filter_variant_missingness_lsf_params(email):
+def filter_variant_missingness_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -701,11 +714,11 @@ def normalize_decompose_unique(in_vcf, in_chrom, out_vcf, out_log):
     cmd = "{script} {in_vcf} {out_vcf} {in_chrom} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
-def normalize_decompose_unique_lsf_params(email):
+def normalize_decompose_unique_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 32000000,
         'R' : 'select[mem>32000 && ncpus>8] rusage[mem=32000]',
     }
@@ -720,11 +733,11 @@ def calculate_sample_missingness(in_json, out_stats, out_log):
     cmd = "{python} {script} --out={out_stats} {in_json} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
-def calculate_sample_missingness_lsf_params(email):
+def calculate_sample_missingness_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -739,11 +752,11 @@ def count_sample_missingness(in_vcf, in_chrom, out_json, out_log):
     cmd = "{python} {script} --out={out_json} {in_vcf} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
-def count_sample_missingness_lsf_params(email):
+def count_sample_missingness_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
@@ -770,11 +783,11 @@ def gatk_select_variants_remove_ac_0(in_chrom, in_vcf, out_vcf, out_log):
 
     return cmd
 
-def gatk_select_variants_remove_ac_0_lsf_params(email):
+def gatk_select_variants_remove_ac_0_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
+        'q' : queue,
         'M' : 8000000,
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
