@@ -34,6 +34,8 @@ setup(
         'seaborn==0.7.1',
         'Cython==0.25.2',
         'cyvcf2==0.7.0',
+        'bx-python==0.7.3',
+        'pysam==0.9.1.4',
     ],
     entry_points='''
         [console_scripts]

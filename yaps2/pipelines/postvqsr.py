@@ -95,7 +95,7 @@ class Pipeline(object):
         # 6. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
         # 7. VEP annotation
-        #annotate_vep_cadd_tasks = self.create_vep_cadd_annotation_tasks(annotate_ExAC_tasks)
+        annotate_vep_cadd_tasks = self.create_vep_cadd_annotation_tasks(annotate_ExAC_tasks)
         # 8. bcftools stats
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
         # 8.1 Merge & Plot bcftools stats
@@ -227,34 +227,38 @@ class Pipeline(object):
 
         return tasks
 
-    def create_vep_cadd_annotation_task(self, parent_tasks):
+    def create_vep_cadd_annotation_tasks(self, parent_tasks):
+        tasks = []
         stage = '7-vep-cadd-annotation'
-        output_dir = os.path.join(self.config.rootdir, stage)
-
-        prior_stage_name = parent_tasks[0].stage.name
-        input_dir = os.path.join(self.config.rootdir, prior_stage_name)
+        basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
-                annotation_VEP_CADD_lsf_params,
+                annotation_vep_cadd_lsf_params,
                 self.config.email,
                 self.config.docker
         )
         lsf_params_json = to_json(lsf_params)
 
-        task = {
-            'func' : annotation_VEP_CADD,
-            'params' : {
-                'in_dir' : input_dir,
-                'out_dir' : output_dir,
-            },
-            'stage_name' : stage,
-            'uid' : 'all-chroms',
-            'drm_params' : lsf_params_json,
-            'parents' : parent_tasks,
-        }
+        for ptask in parent_tasks:
+            chrom = ptask.params['in_chrom']
+            output_vcf = 'annotated.vep.cadd.c{}.vcf.gz'.format(chrom)
+            output_log = 'vep.cadd.annotation.{}.log'.format(chrom)
+            task = {
+                'func' : annotation_vep_cadd,
+                'params' : {
+                    'in_vcf'  : ptask.params['out_vcf'],
+                    'in_chrom' : chrom,
+                    'out_vcf' : os.path.join(basedir, chrom, output_vcf),
+                    'out_log' : os.path.join(basedir, chrom, output_log),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=chrom),
+                'drm_params' : lsf_params_json,
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
 
-        vep_cadd_task = self.workflow.add_task(**task)
-        return vep_cadd_task
+        return tasks
 
     def create_ExAC_annotation_tasks(self, parent_tasks):
         tasks = []
@@ -605,22 +609,23 @@ def gatk_variant_eval_lsf_params(email):
         'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
     }
 
-def annotation_VEP_CADD(in_dir, out_dir):
+def annotation_vep_cadd(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
-        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/vep-cadd-annotation.sh'),
+        'main_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/vep-cadd-annotation.sh'),
+        'merge_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/merge-in-cadd.py'),
     }
     cmd_args = merge_params(default, args)
-    cmd = "{script} {in_dir} {out_dir}".format(**cmd_args)
+    cmd = "{main_script} {in_vcf} {out_vcf} {merge_script} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
-def annotation_VEP_CADD_lsf_params(email):
+def annotation_vep_cadd_lsf_params(email):
     return  {
         'u' : email,
         'N' : None,
-        'q' : "ccdg",
-        'M' : 8000000,
-        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
+        'q' : queue,
+        'M' : 64000000,
+        'R' : 'select[mem>60000 && ncpus>8] rusage[mem=64000]',
     }
 
 def annotation_ExAC(in_vcf, in_chrom, out_vcf, out_log):
