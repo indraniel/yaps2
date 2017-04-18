@@ -94,19 +94,19 @@ class Pipeline(object):
         annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_variant_missingness_tasks)
         # 6. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
-        # 7. CADD/VEP annotation
-        # annotate_vep_cadd_task = self.create_vep_cadd_annotation_task(annotate_ExAC_tasks)
-        # 8. GATK VariantEval
-        variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
-        # 8.1. Merge & Plot GATK VariantEval Stats
-        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
-        # 9. bcftools stats
+        # 7. VEP annotation
+        #annotate_vep_cadd_tasks = self.create_vep_cadd_annotation_tasks(annotate_ExAC_tasks)
+        # 8. bcftools stats
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
-        # 9.1 Merge & Plot bcftools stats
+        # 8.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
+        # 9. GATK VariantEval
+        variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
+        # 9.1. Merge & Plot GATK VariantEval Stats
+        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
 
     def create_bcftools_stats_summary_task(self, parent_tasks):
-        stage = '9.1-bcftools-stats-summary'
+        stage = '8.1-bcftools-stats-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -135,7 +135,7 @@ class Pipeline(object):
         return summary_task
 
     def create_variant_eval_summary_task(self, parent_tasks):
-        stage = '8.1-gatk-variant-eval-summary'
+        stage = '9.1-gatk-variant-eval-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -165,7 +165,7 @@ class Pipeline(object):
 
     def create_bcftools_stats_tasks(self, parent_tasks):
         tasks = []
-        stage = '9-bcftools-stats'
+        stage = '8-bcftools-stats'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -196,7 +196,7 @@ class Pipeline(object):
 
     def create_variant_eval_tasks(self, parent_tasks):
         tasks = []
-        stage = '8-gatk-variant-eval'
+        stage = '9-gatk-variant-eval'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
