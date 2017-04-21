@@ -350,7 +350,6 @@ class Pipeline(object):
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
             output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
-            output_stats = '{chrom}.stats.missingness.out'.format(chrom=chrom)
             output_log = 'filter-missingness-{}.log'.format(chrom)
             task = {
                 'func' : filter_variant_missingness,
@@ -358,7 +357,6 @@ class Pipeline(object):
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
                     'out_vcf' : os.path.join(basedir, chrom, output_vcf),
-                    'out_stats' : os.path.join(basedir, chrom, output_stats),
                     'out_log' : os.path.join(basedir, chrom, output_log),
                 },
                 'stage_name' : stage,
@@ -677,7 +675,7 @@ def annotation_1000G_lsf_params(email, queue):
         'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
-def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
+def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
         'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/filter-missingness-sites.sh'),
@@ -692,7 +690,7 @@ def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_stats, out_log):
     else:
         cmd = ( "{script} "
                 "{python_executable} {python_script} "
-                "{in_vcf} {out_vcf} {out_stats} {in_chrom} "
+                "{in_vcf} {out_vcf} {in_chrom} "
                 ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
