@@ -1,4 +1,4 @@
-import json, re, os
+import json, re, os, gzip
 
 def to_json(var):
     return json.dumps(var)
@@ -16,6 +16,14 @@ def natural_key(string_):
 def ensure_directory(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+def empty_gzipped_vcf(path):
+    # From http://stackoverflow.com/questions/37874936/how-to-check-empty-gzip-file-in-python
+    with gzip.GzipFile(path, 'rb') as f:
+        for line in f:
+            if not line.startswith('#'):
+                return False
+    return True
 
 class Region(object):
     def __init__(self, reference_index, string):
