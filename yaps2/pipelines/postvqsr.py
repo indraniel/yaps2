@@ -1,7 +1,8 @@
 import os, pwd, sys
 import pkg_resources
+from itertools import groupby
 from cosmos.api import Cosmos, Dependency, default_get_submit_args
-from yaps2.utils import to_json, merge_params, natural_key
+from yaps2.utils import to_json, merge_params, natural_key, Region, empty_gzipped_vcf
 
 class Config(object):
     def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker, queue):
@@ -97,17 +98,19 @@ class Pipeline(object):
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
         # 7. VEP annotation
         annotate_vep_cadd_tasks = self.create_vep_cadd_annotation_tasks(annotate_ExAC_tasks)
-        # 8. bcftools stats
+        # 8. VCF concatenation
+        concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_vep_cadd_tasks)  
+        # 9. bcftools stats
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
-        # 8.1 Merge & Plot bcftools stats
+        # 9.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
-        # 9. GATK VariantEval
+        # 10. GATK VariantEval
         variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
-        # 9.1. Merge & Plot GATK VariantEval Stats
+        # 10.1. Merge & Plot GATK VariantEval Stats
         variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
 
     def create_bcftools_stats_summary_task(self, parent_tasks):
-        stage = '8.1-bcftools-stats-summary'
+        stage = '9.1-bcftools-stats-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -136,8 +139,48 @@ class Pipeline(object):
         summary_task = self.workflow.add_task(**task)
         return summary_task
 
+    def create_concatenate_vcfs_task(self, parent_tasks):
+        tasks = list()
+        stage = '8-concat-vcfs'
+        output_dir = os.path.join(self.config.rootdir, stage)
+
+        lsf_params = get_lsf_params(
+                concatenate_vcfs_lsf_params,
+                self.config.email,
+                self.config.docker,
+                self.config.drm_queue
+        )
+        lsf_params_json = to_json(lsf_params)
+
+        def region_key(task):
+            return Region('/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa.fai', task.params['in_chrom'])
+
+        def chromosome_key(task):
+            return Region('/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa.fai', task.params['in_chrom']).chrom
+
+        for ref_chrom, chrom_tasks in groupby(sorted(parent_tasks, key=region_key), key=chromosome_key):
+            ptasks = list(chrom_tasks)
+            input_vcfs = [ x.params['out_vcf'] for x in ptasks ]
+            output_vcf = 'concatenated.c{}.vcf.gz'.format(ref_chrom)
+            output_log = 'concatenate.{}.log'.format(ref_chrom)
+            task = {
+                'func' : concatenate_vcfs,
+                'params' : {
+                    'in_vcfs'  : input_vcfs,
+                    'in_chrom' : ref_chrom,
+                    'out_vcf' : os.path.join(output_dir, ref_chrom, output_vcf),
+                    'out_log' : os.path.join(output_dir, ref_chrom, output_log),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=ref_chrom),
+                'drm_params' : lsf_params_json,
+                'parents' : ptasks,
+            }
+            tasks.append( self.workflow.add_task(**task) )
+        return tasks
+
     def create_variant_eval_summary_task(self, parent_tasks):
-        stage = '9.1-gatk-variant-eval-summary'
+        stage = '10.1-gatk-variant-eval-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -168,7 +211,7 @@ class Pipeline(object):
 
     def create_bcftools_stats_tasks(self, parent_tasks):
         tasks = []
-        stage = '8-bcftools-stats'
+        stage = '9-bcftools-stats'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -200,7 +243,7 @@ class Pipeline(object):
 
     def create_variant_eval_tasks(self, parent_tasks):
         tasks = []
-        stage = '9-gatk-variant-eval'
+        stage = '10-gatk-variant-eval'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -552,6 +595,38 @@ def bcftools_stats(in_vcf, in_chrom, out_stats):
     return cmd
 
 def bcftools_stats_lsf_params(email, queue):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : queue,
+        'M' : 10000000,
+        'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
+    }
+
+def concatenate_vcfs(in_vcfs, in_chrom, out_vcf, out_log):
+    args = locals()
+    default = {
+        'bcftools' : '/gscmnt/gc2802/halllab/idas/software/local/bin/bcftools1.4',
+    }
+
+    cmd_args = merge_params(default, args)
+    cmd = None
+    if len(cmd_args['in_vcfs']) == 1:
+        cmd_args['in_vcfs'] = cmd_args['in_vcfs'][0]
+        cmd = ( "cp -v {in_vcfs} {out_vcf}"
+                ">{out_log} "
+                "2>&1").format(**cmd_args)
+    else:
+        cmd_args['in_vcfs'] = ' '.join([ x for x in in_vcfs if not empty_gzipped_vcf(x) ])
+        cmd = ( "{bcftools} concat "
+                "-a "
+                "{in_vcfs} "
+                "-O z -o {out_vcf}"
+                ">{out_log} "
+                "2>&1").format(**cmd_args)
+    return cmd
+
+def concatenate_vcfs_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
