@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import itertools, re, sys, os
 
 if 'VIRTUAL_ENV' in os.environ:
-    print('found a virtualenv -- activating: {}'.format(os.environ['VIRTUAL_ENV']))
+    print('found a virtualenv -- activating: {}'.format(os.environ['VIRTUAL_ENV']), sys.stderr)
     activation_script = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'activate_this.py')
     execfile(activation_script, dict(__file__=activation_script))
 

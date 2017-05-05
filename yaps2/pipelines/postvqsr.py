@@ -92,25 +92,27 @@ class Pipeline(object):
         dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks)
         # 4. filter missingess
         filter_variant_missingness_tasks = self.create_filter_variant_missingness_tasks(dnu_tasks)
-        # 5. annotate with 1000G
-        annotate_1000G_tasks = self.create_1000G_annotation_tasks(filter_variant_missingness_tasks)
-        # 6. annotate with ExAC
+        # 5. annotate allele balances
+        allele_balance_annotation_tasks = self.create_allele_balance_annotation_tasks(filter_variant_missingness_tasks)
+        # 6. annotate with 1000G
+        annotate_1000G_tasks = self.create_1000G_annotation_tasks(allele_balance_annotation_tasks)
+        # 7. annotate with ExAC
         annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks)
-        # 7. VEP annotation
+        # 8. VEP annotation
         annotate_vep_cadd_tasks = self.create_vep_cadd_annotation_tasks(annotate_ExAC_tasks)
-        # 8. VCF concatenation
-        concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_vep_cadd_tasks)  
-        # 9. bcftools stats
+        # 9. VCF concatenation
+        concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_vep_cadd_tasks)
+        # 10. bcftools stats
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks)
-        # 9.1 Merge & Plot bcftools stats
+        # 10.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks)
-        # 10. GATK VariantEval
+        # 11. GATK VariantEval
         variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks)
-        # 10.1. Merge & Plot GATK VariantEval Stats
+        # 11.1. Merge & Plot GATK VariantEval Stats
         variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks)
 
     def create_bcftools_stats_summary_task(self, parent_tasks):
-        stage = '9.1-bcftools-stats-summary'
+        stage = '10.1-bcftools-stats-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -141,7 +143,7 @@ class Pipeline(object):
 
     def create_concatenate_vcfs_task(self, parent_tasks):
         tasks = list()
-        stage = '8-concat-vcfs'
+        stage = '9-concat-vcfs'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -180,7 +182,7 @@ class Pipeline(object):
         return tasks
 
     def create_variant_eval_summary_task(self, parent_tasks):
-        stage = '10.1-gatk-variant-eval-summary'
+        stage = '11.1-gatk-variant-eval-summary'
         output_dir = os.path.join(self.config.rootdir, stage)
 
         prior_stage_name = parent_tasks[0].stage.name
@@ -211,7 +213,7 @@ class Pipeline(object):
 
     def create_bcftools_stats_tasks(self, parent_tasks):
         tasks = []
-        stage = '9-bcftools-stats'
+        stage = '10-bcftools-stats'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -277,7 +279,7 @@ class Pipeline(object):
 
     def create_vep_cadd_annotation_tasks(self, parent_tasks):
         tasks = []
-        stage = '7-vep-cadd-annotation'
+        stage = '8-vep-cadd-annotation'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -311,7 +313,7 @@ class Pipeline(object):
 
     def create_ExAC_annotation_tasks(self, parent_tasks):
         tasks = []
-        stage = '6-annotate-w-ExAC'
+        stage = '7-annotate-w-ExAC'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -345,7 +347,7 @@ class Pipeline(object):
 
     def create_1000G_annotation_tasks(self, parent_tasks):
         tasks = []
-        stage = '5-annotate-w-1000G'
+        stage = '6-annotate-w-1000G'
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
@@ -362,6 +364,40 @@ class Pipeline(object):
             output_log = '1000G-annotate.{}.log'.format(chrom)
             task = {
                 'func' : annotation_1000G,
+                'params' : {
+                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_chrom' : chrom,
+                    'out_vcf' : os.path.join(basedir, chrom, output_vcf),
+                    'out_log' : os.path.join(basedir, chrom, output_log),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=chrom),
+                'drm_params' : lsf_params_json,
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
+
+    def create_allele_balance_annotation_tasks(self, parent_tasks):
+        tasks = []
+        stage = '5-allele-balance-annotation'
+        basedir = os.path.join(self.config.rootdir, stage)
+
+        lsf_params = get_lsf_params(
+                annotate_allele_balances_lsf_params,
+                self.config.email,
+                self.config.docker,
+                self.config.drm_queue
+        )
+        lsf_params_json = to_json(lsf_params)
+
+        for ptask in parent_tasks:
+            chrom = ptask.params['in_chrom']
+            output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
+            output_log = 'allele-balance-{}.log'.format(chrom)
+            task = {
+                'func' : annotate_allele_balances,
                 'params' : {
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
@@ -579,7 +615,7 @@ def bcftools_stats_summary_lsf_params(email, queue):
 def bcftools_stats(in_vcf, in_chrom, out_stats):
     args = locals()
     default = {
-        'bcftools' : '/gsc/bin/bcftools1.2',
+        'bcftools' : '/gscmnt/gc2802/halllab/idas/software/local/bin/bcftools1.4',
         'reference' : '/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa',
     }
 
@@ -588,6 +624,7 @@ def bcftools_stats(in_vcf, in_chrom, out_stats):
     cmd = ( "{bcftools} stats "
             "--split-by-ID "
             "-F {reference} "
+            "-s - "
             "-f '.,PASS' "
             "{in_vcf} "
             ">{out_stats}").format(**cmd_args)
@@ -742,6 +779,31 @@ def annotation_1000G(in_vcf, in_chrom, out_vcf, out_log):
     return cmd
 
 def annotation_1000G_lsf_params(email, queue):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : queue,
+        'M' : 8000000,
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
+    }
+
+def annotate_allele_balances(in_vcf, in_chrom, out_vcf, out_log):
+    args = locals()
+    default = {
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/allele-balance-annotation.sh'),
+        'python_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/annotate-allele-balances.py'),
+        'python_executable' : sys.executable,
+    }
+    cmd_args = merge_params(default, args)
+
+    cmd = ( "{script} "
+            "{python_executable} {python_script} "
+            "{in_vcf} {out_vcf} {in_chrom} "
+            ">{out_log} 2>&1" ).format(**cmd_args)
+
+    return cmd
+
+def annotate_allele_balances_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,

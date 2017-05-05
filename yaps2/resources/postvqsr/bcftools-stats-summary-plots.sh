@@ -26,7 +26,7 @@ INPUT_VCF_DIR=$1
 OUTPUT_STATS_DIR=${2}/   # terminating '/' needed to create directory by plot-vcfstats
 
 # the bcftools script that performs the work
-PLOT_VCFSTATS=/gscuser/dlarson/src/bcftools/plot-vcfstats
+PLOT_VCFSTATS=/gscmnt/gc2802/halllab/idas/software/local/bin/plot-vcfstats
 
 # setup the desired perl
 PERL=/gsc/scripts/opt/genome/current/user/bin/genome-perl
