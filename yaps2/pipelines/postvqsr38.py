@@ -155,10 +155,12 @@ class Pipeline(object):
         lsf_params_json = to_json(lsf_params)
 
         def region_key(task):
-            return Region('/Build38/all_sequences.fa.fai', task.params['in_chrom'])
+            reference_fai = '/gscmnt/gc2802/halllab/ccdg_resources/genomes/human/GRCh38DH/all_sequences.fa.fai'
+            return Region(reference_fai, task.params['in_chrom'])
 
         def chromosome_key(task):
-            return Region('/Build38/all_sequences.fa.fai', task.params['in_chrom']).chrom
+            reference_fai = '/gscmnt/gc2802/halllab/ccdg_resources/genomes/human/GRCh38DH/all_sequences.fa.fai'
+            return Region(reference_fai, task.params['in_chrom']).chrom
 
         for ref_chrom, chrom_tasks in groupby(sorted(parent_tasks, key=region_key), key=chromosome_key):
             ptasks = list(chrom_tasks)

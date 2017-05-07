@@ -157,10 +157,18 @@ class Pipeline(object):
         lsf_params_json = to_json(lsf_params)
 
         def region_key(task):
-            return Region('/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa.fai', task.params['in_chrom'])
+            reference_fai = os.path.join(
+                '/gscmnt/ams1102/info/model_data/2869585698/build106942997',
+                'all_sequences.fa.fai'
+            )
+            return Region(all_sequences.fa.fai, task.params['in_chrom'])
 
         def chromosome_key(task):
-            return Region('/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa.fai', task.params['in_chrom']).chrom
+            reference_fai = os.path.join(
+                '/gscmnt/ams1102/info/model_data/2869585698/build106942997',
+                'all_sequences.fa.fai'
+            )
+            return Region(reference_fai, task.params['in_chrom']).chrom
 
         for ref_chrom, chrom_tasks in groupby(sorted(parent_tasks, key=region_key), key=chromosome_key):
             ptasks = list(chrom_tasks)
