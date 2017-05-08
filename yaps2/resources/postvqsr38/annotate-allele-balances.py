@@ -19,24 +19,29 @@ def log(msg):
 def is_biallelic(variant):
     return True if len(variant.ALT) == 1 else False
 
+def calculate_allele_balance(variant, mask):
+    allele_balance = 0.0
+
+    # get the supporting read counts for each allele
+    ref_counts = np.sum(variant.format('AD')[mask][:,0])
+    alt_counts = np.sum(variant.format('AD')[mask][:,1])
+    total_counts = alt_counts + ref_counts
+
+    if total_counts != 0:
+        allele_balance = alt_counts / total_counts
+
+    return allele_balance
+
 def compute_allelic_balances(variant):
     # initial values
     (het_ab, het_hom_alt_ab) = (0.0 , 0.0)
 
-    # gt_types is array of 0,1,2,3==HOM_REF, HET, UNKNOWN, HOM_ALT
+    # gt_types is array of (0,1,2,3) == (HOM_REF, HET, UNKNOWN, HOM_ALT)
     het_mask = variant.gt_types == 1
-    ref_counts = np.sum(variant.format('AD')[het_mask][:,0])
-    alt_counts = np.sum(variant.format('AD')[het_mask][:,1])
-    total_counts = alt_counts + ref_counts
-    if total_counts != 0:
-        het_ab = alt_counts / total_counts
+    het_ab = calculate_allele_balance(variant, het_mask)
 
     het_hom_alt_mask = (variant.gt_types == 1) | (variant.gt_types == 3)
-    ref_counts = np.sum(variant.format('AD')[het_hom_alt_mask][:,0])
-    alt_counts = np.sum(variant.format('AD')[het_hom_alt_mask][:,1])
-    total_counts = alt_counts + ref_counts
-    if total_counts != 0:
-        het_hom_alt_ab = alt_counts / total_counts
+    het_hom_alt_ab = calculate_allele_balance(variant, het_hom_alt_mask)
 
     return (het_ab, het_hom_alt_ab)
 
