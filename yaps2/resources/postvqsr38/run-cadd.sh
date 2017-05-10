@@ -47,41 +47,6 @@ function copy_over_vcf {
     cp -v ${invcf}.tbi ${outvcf}.tbi
 }
 
-# function subtract_vcf_samples {
-#     local invcf=$1
-#     local new_vcf_name=$2
-#     local outdir=$(dirname ${invcf})
-#     local outvcf=${outdir}/${new_vcf_name}
-#     local tmpvcf=$outvcf.tmp
-# 
-#     if [[ -e "${outvcf}" ]]; then
-#         log "shortcutting subtract_vcf_samples (${new_vcf_name})"
-#         echo ${outvcf}
-#         return 0;
-#     fi
-# 
-#     # add the header to the new test vcf (except for the last header line)
-#     cmd1="${BCFTOOLS} view -h ${invcf} | head -n -1 > ${tmpvcf}"
-#     run_cmd "${cmd1}"
-# 
-#     # correctly add the last header line
-#     cmd2="${BCFTOOLS} view -h ${invcf} | tail -n 1 | cut -f 1-8 >>${tmpvcf}"
-#     run_cmd "${cmd2}"
-# 
-#     # add the first few samples / variants
-#     cmd3="${BCFTOOLS} view -H ${invcf} | cut -f 1-8 >>${tmpvcf}"
-#     run_cmd "${cmd3}"
-# 
-#     # tabix & bgzip the file
-#     local cmd4="
-#     ${TABIX} -p vcf -f ${tmpvcf} \
-#         && mv ${tmpvcf}.tbi ${outvcf}.tbi \
-#         && mv ${tmpvcf} ${outvcf}
-#     "
-#     run_cmd "${cmd4}"
-#     echo ${outvcf}
-# }
-
 function vcf_subtract_samples {
     local vcf=$1
 
@@ -248,36 +213,7 @@ function paste_cadd {
 
     local tmpvcf=${outvcf}.tmp
 
-    # core of "paste_cadd.sh"
-# old approach    
-#    local cmd1="
-#    cat <(${PYTHON} ${merge_cadd_script} -H <(zcat ${invcf}) <(zcat ${caddtsv})) \
-#        <(paste <(${PYTHON} ${merge_cadd_script} --no-header <(zcat ${invcf}) <(zcat ${caddtsv})) \
-#                <(zcat ${fullvcf} | ${AWK} '{if(\$5!=\".\") print \$0}' | grep -v '^##' | cut -f9- )) \
-#        | ${BGZIP} -c \
-#        > ${tmpvcf}
-#    "
-
-# # new approach (based on changes in gatk-workflow.git:scripts/paste_cadd.sh)
-#     local cmd1="
-#     cat <(python2.7 ${merge_cadd_script} -H <(zcat ${invcf}) <(zcat ${caddtsv})) \
-#         <(paste <(python2.7 ${merge_cadd_script} --no-header \
-#                     <(cat <(zcat ${invcf} | grep \"^#\") \
-#                           <(zcat ${invcf} \
-#                               | grep -v \"^#\" \
-#                               | sort -k1,1 -k2,2n -k4,4 -k5,5)) \
-#                     <(zcat ${caddtsv})) \
-#                 <(zcat ${fullvcf} \
-#                     | grep -v \"^##\" \
-#                     | sort -k1,1 -k2,2n -k4,4 -k5,5 \
-#                     | ${AWK} '{if(\$5!=\".\") print \$0}' \
-#                     | cut -f9- )) \
-#     | ${BGZIP} -c \
-#     > ${tmpvcf}
-#     "
-#     run_cmd "${cmd1}"
-
-# even newer approach (assume no samples on the vcf)
+    # core of "paste_cadd.sh" -- newer approach (assume no samples on the vcf)
     local cmd1="
     cat <(python2.7 ${merge_cadd_script} -H <(zcat ${invcf}) <(zcat ${caddtsv})) \
         <(python2.7 ${merge_cadd_script} --no-header \
