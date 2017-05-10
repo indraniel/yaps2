@@ -17,21 +17,22 @@ def merge(vcf, cadd, header_only, print_header):
             elif vcf_line.startswith('#'):
                 if header_only or print_header:
                     sys.stdout.write('##INFO=<ID=CADD,Number=A,Type=Float,Description="CADD score">\n')
+                    sys.stdout.write('##INFO=<ID=CADD_RAW,Number=A,Type=Float,Description="Raw CADD score">\n')
                 # We will always output the actual header line so we can paste in the samples
                 if header_only:
                     sys.exit(0)
                 sys.stdout.write(vcf_line)
             else:
                 vcf_fields = vcf_line.rstrip().split('\t', 8)
-                if vcf_fields[4].startswith('<') and vcf_fields[4].endswith('>'):
-                    vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD=.'])
+                if (vcf_fields[4].startswith('<') and vcf_fields[4].endswith('>')) or vcf_fields[4]=='*':
+                    vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD=.', 'CADD_RAW=.'])
                     sys.stdout.write('\t'.join(vcf_fields))
                     sys.stdout.write('\n')
                 elif (vcf_fields[0] == cadd_fields[0]
                         and vcf_fields[1] == cadd_fields[1]
                         and vcf_fields[3] == cadd_fields[2]
                         and vcf_fields[4] == cadd_fields[3]):
-                    vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD={0}'.format(cadd_fields[5])])
+                    vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD={0}'.format(cadd_fields[5]), 'CADD_RAW={0}'.format(cadd_fields[4])])
                     sys.stdout.write('\t'.join(vcf_fields))
                     sys.stdout.write('\n')
                     break
@@ -40,8 +41,8 @@ def merge(vcf, cadd, header_only, print_header):
                     sys.exit(1)
     for vcf_line in vcf:
         vcf_fields = vcf_line.rstrip().split('\t', 8)
-        if vcf_fields[4].startswith('<') and vcf_fields[4].endswith('>'):
-            vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD=.'])
+        if (vcf_fields[4].startswith('<') and vcf_fields[4].endswith('>')) or vcf_fields[4]=='*':
+            vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD=.', 'CADD_RAW=.'])
             sys.stdout.write('\t'.join(vcf_fields))
             sys.stdout.write('\n')
         else:
