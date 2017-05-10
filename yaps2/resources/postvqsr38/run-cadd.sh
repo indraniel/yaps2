@@ -11,7 +11,7 @@ PYTHON=$(which python) # if run inside yaps2 pipeline, then should be getting th
 
 BGZIP=/gscmnt/gc2802/halllab/idas/software/local/bin/bgzip
 TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
-BCFTOOLS=/gscmnt/gc2802/halllab/idas/software/local/bcftools1.4
+BCFTOOLS=/gscmnt/gc2802/halllab/idas/software/local/bin/bcftools1.4
 
 function log {
     local timestamp=$(date +"%Y-%m-%d %T")
@@ -111,6 +111,25 @@ function tabix_and_finalize_vcf {
     run_cmd "${cmd}"
 }
 
+function prune_samples_on_b38_vcf {
+    local invcf=$1
+    local outdir=$(dirname ${invcf})
+    local outvcf=${outdir}/b38.nosamples.vcf.gz
+
+    if [[ -e "${outvcf}" ]]; then
+        log "shortcutting prune_samples_on_b38_vcf"
+        echo ${outvcf}
+        return 0;
+    fi
+
+    local tmpvcf=${outvcf}.tmp
+
+	local cmd1="vcf_subtract_samples ${invcf} | ${BGZIP} -c > ${tmpvcf}"
+	run_cmd "${cmd1}"
+	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
+    echo ${outvcf}
+}
+
 function run_liftover_hg19 {
     local invcf=$1
     local outdir=$(dirname ${invcf})
@@ -124,6 +143,8 @@ function run_liftover_hg19 {
         return 0;
     fi
 
+    local tmpvcf=${outvcf}.tmp
+
     local chain=/gscmnt/gc2802/halllab/aregier/jira/BIO-2228/hg38ToHg19.over.chain.gz
     local reference=/gscmnt/gc2719/halllab/genomes/human/GRCh37/hg19_ucsc/hg19.fa
 
@@ -133,7 +154,7 @@ function run_liftover_hg19 {
         -jar ${PICARD} \
         LiftoverVcf \
         I=${invcf} \
-        O=${outvcf} \
+        O=${tmpvcf} \
         C=${chain} \
         REJECT=${reject} \
         R=${reference} \
@@ -142,6 +163,7 @@ function run_liftover_hg19 {
     "
 
     run_cmd "${cmd1}"
+	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
     echo ${outvcf}
 }
 
@@ -158,6 +180,8 @@ function run_liftover_grc37 {
         return 0;
     fi
 
+    local tmpvcf=${outvcf}.tmp
+
     local chain=/gscmnt/gc2802/halllab/aregier/jira/BIO-2228/hg19ToGRCh37.over.chain.gz
     local reference=/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa
 
@@ -167,7 +191,7 @@ function run_liftover_grc37 {
         -jar ${PICARD} \
         LiftoverVcf \
         I=${invcf} \
-        O=${outvcf} \
+        O=${tmpvcf} \
         C=${chain} \
         REJECT=${reject} \
         R=${reference} \
@@ -176,27 +200,7 @@ function run_liftover_grc37 {
     "
 
     run_cmd "${cmd1}"
-    echo ${outvcf}
-}
-
-function prune_grc37vcf_samples {
-    local invcf=$1
-    local outdir=$(dirname ${invcf})
-    local outvcf=${outdir}/grc37.nosample.vcf.gz
-
-    if [[ -e "${outvcf}" ]]; then
-        log "shortcutting prune_grc37vcf_samples"
-        echo ${outvcf}
-        return 0;
-    fi
-
-    local tmptsv=${outvcf}.tmp
-
-	local cmd1="cat <(vcf_subtract_samples ${invcf}) | ${BGZIP} -c > ${tmpvcf}"
-	run_cmd "${cmd1}"
-
 	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
-
     echo ${outvcf}
 }
 
@@ -232,10 +236,9 @@ function paste_cadd {
     local merge_cadd_script=$1
     local invcf=$2
     local caddtsv=$3
-    local fullvcf=$4
 
     local outdir=$(dirname ${invcf})
-    local outvcf=${outdir}/grc37.vep.cadd.vcf.gz
+    local outvcf=${outdir}/grc37.cadd.vcf.gz
 
     if [[ -e "${outvcf}" ]]; then
         log "shortcutting paste_cadd"
@@ -274,7 +277,7 @@ function paste_cadd {
 #     "
 #     run_cmd "${cmd1}"
 
-# even newer approach (defer merging of the samples for a later step)
+# even newer approach (assume no samples on the vcf)
     local cmd1="
     cat <(python2.7 ${merge_cadd_script} -H <(zcat ${invcf}) <(zcat ${caddtsv})) \
         <(python2.7 ${merge_cadd_script} --no-header \
@@ -287,10 +290,7 @@ function paste_cadd {
     > ${tmpvcf}
     "
     run_cmd "${cmd1}"
-
-
 	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
-
     echo ${outvcf}
 }
 
@@ -300,60 +300,72 @@ function integrate_b37_annotations_to_b38 {
     local b38_vcf=$3
     local annotation_type=$4
 
-    ${PYTHON} ${integrate_script} \
-        --b38-vcf=$(vcf_subtract_samples ${b38_vcf})  \
-        --annotated-b37-vcf=${b37_vcf} \
-        --auto-fill \
-        --annotation-type=${annotation_type}
-}
+    local outdir=$(dirname ${b38_vcf})
+    local outvcf=${outdir}/b38.cadd.nosamples.vcf.gz
 
-function migrate_b37_annotations_to_b38 {
-	local original_b38_input_vcf=$1
-    local final_b38_annotated_output_vcf=$2
-    local b37vcf=$3
-    local integrate_script=$4
-
-    if [[ -e "${final_b38_annotated_output_vcf}" ]]; then
-        log "shortcutting migrate_b37_annotations_to_b38"
+    if [[ -e "${outvcf}" ]]; then
+        log "shortcutting integrate_b37_annotations_to_b38"
+        echo ${outvcf}
         return 0;
     fi
 
-    local tmpvcf=${final_b38_annotated_output_vcf}.tmp
+    local tmpvcf=${outvcf}.tmp
 
     local cmd1="
-	vcf_add_samples \
-		<(integrate_b37_annotations_to_b38 \
-             ${integrate_script} \
-             ${b37vcf} \
-		     ${original_b38_input_vcf} \
-             'cadd') \
-        ${original_b38_input_vcf} \
+    ${PYTHON} ${integrate_script} \
+        --b38-vcf=${b38_vcf}  \
+        --annotated-b37-vcf=${b37_vcf} \
+        --auto-fill \
+        --annotation-type=${annotation_type} \
     | ${BGZIP} -c \
     > ${tmpvcf}
     "
     run_cmd "${cmd1}"
+	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
+    echo ${outvcf}
+}
 
-	tabix_and_finalize_vcf ${tmpvcf} ${final_b38_annotated_output_vcf}
+function add_samples_on_b38_cadd_vcf {
+	local original_b38_input_vcf=$1
+    local b38_annotated_no_samples_vcf=$2
+    local final_b38_output_vcf=$3
+
+    if [[ -e "${final_b38_output_vcf}" ]]; then
+        log "shortcutting add_samples_on_b38_cadd_vcf"
+        return 0;
+    fi
+
+    local tmpvcf=${final_b38_output_vcf}.tmp
+
+    local cmd1="
+	vcf_add_samples ${b38_annotated_no_samples_vcf} ${original_b38_input_vcf} \
+        | ${BGZIP} -c \
+        > ${tmpvcf}
+    "
+    run_cmd "${cmd1}"
+	tabix_and_finalize_vcf ${tmpvcf} ${final_b38_output_vcf}
 }
 
 function annotate_vcf {
-    local invcf=$1
-    local outvcf=$2
+    local b38_invcf=$1
+    local b38_outvcf=$2
     local merge_script=$3
     local migrate_script=$4
 
+    log "Remove samples on b38 input vcf"
+    local b38_invcf_no_samples=$(prune_samples_on_b38_vcf ${b38_invcf})
     log "Entering liftOver hg19"
-    local hg19vcf=$(run_liftover_hg19 ${invcf})
+    local hg19_vcf=$(run_liftover_hg19 ${b38_invcf_no_samples})
     log "Entering liftOver GRCh37"
-    local grc37vcf=$(run_liftover_grc37 ${hg19vcf})
-    log "Remove samples on GRCh37 liftOver vcf"
-    local no_sample_grc37_vcf=$(prune_grc37vcf_samples ${grc37vcf})
+    local grc37_vcf=$(run_liftover_grc37 ${hg19_vcf})
     log "Entering run_cadd"
-    local tsv=$(run_cadd ${no_sample_grc37vcf})
+    local tsv=$(run_cadd ${grc37_vcf})
     log "Entering paste_cadd"
-    local b37vcf=$(paste_cadd ${merge_script} ${no_sample_grc37_vcf} ${tsv} ${grc37vcf} )
-    log "Entering migrate b37 annotations back to b38"
-    migrate_b37_annotations_to_b38 ${invcf} ${outvcf} ${b37vcf} ${migrate_script}
+    local b37_cadd_vcf=$(paste_cadd ${merge_script} ${grc37_vcf} ${tsv})
+    log "Entering integrate b37 cadd annotations back to b38"
+    local b38_cadd_vcf=$(integrate_b37_annotations_to_b38 ${migrate_script} ${b37_cadd_vcf} ${b38_invcf_no_samples} 'cadd')
+    log "Add samples on b38 cadd annotated vcf"
+    add_samples_on_b38_cadd_vcf ${b38_invcf} ${b38_cadd_vcf} ${b38_outvcf}
 }
 
 function main {
