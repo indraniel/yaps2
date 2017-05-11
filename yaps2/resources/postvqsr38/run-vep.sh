@@ -94,7 +94,7 @@ function tabix_and_finalize_vcf {
 function run_vep {
     local invcf=$1
     local outdir=$2
-    local outvcf=${outdir}/vep.vcf.gz
+    local outvcf=${outdir}/vep.nosamples.vcf.gz
 
     if [[ -e "${outvcf}" ]]; then
         log "shortcutting run_vep"
@@ -126,7 +126,8 @@ function run_vep {
 
     local cmd1="
     zcat ${invcf} \
-        | ${vep} \
+        | cut -f 1-8 \
+        | perl ${vep} \
             --force_overwrite \
             --offline \
             --fork 12 \
@@ -145,7 +146,7 @@ function run_vep {
             --fields ${vep_fields} \
             --no_stats \
         | ${BGZIP} -c \
-        > $tmpvcf ;
+        > ${tmpvcf} ;
     "
     run_cmd "${cmd1}"
 
@@ -182,11 +183,8 @@ function main {
         local outdir=$(dirname ${outvcf})
         log "Entering run_vep"
         local vepvcf=$(run_vep ${invcf} ${outdir})
-        local cmd2="
-            mv -v ${vepvcf}.tbi ${outvcf}.tbi \
-            && mv -v ${vepvcf} ${outvcf}
-        "
-        run_cmd "${cmd2}"
+        log "Entering add_samples_to_vep_vcf"
+        add_samples_to_vep_vcf ${vepvcf} ${invcf} ${outvcf}
     fi
 
     log 'All Done'
