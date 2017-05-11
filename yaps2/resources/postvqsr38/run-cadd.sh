@@ -286,7 +286,7 @@ function annotate_vcf {
     local b38_invcf=$1
     local b38_outvcf=$2
     local merge_script=$3
-    local migrate_script=$4
+    local integrate_script=$4
 
     log "Remove samples on b38 input vcf"
     local b38_invcf_no_samples=$(prune_samples_on_b38_vcf ${b38_invcf} $(dirname ${b38_outvcf}))
@@ -299,7 +299,7 @@ function annotate_vcf {
     log "Entering paste_cadd"
     local b37_cadd_vcf=$(paste_cadd ${merge_script} ${grc37_vcf} ${tsv})
     log "Entering integrate b37 cadd annotations back to b38"
-    local b38_cadd_vcf=$(integrate_b37_annotations_to_b38 ${migrate_script} ${b37_cadd_vcf} ${b38_invcf_no_samples} 'cadd')
+    local b38_cadd_vcf=$(integrate_b37_annotations_to_b38 ${integrate_script} ${b37_cadd_vcf} ${b38_invcf_no_samples} 'cadd')
     log "Add samples on b38 cadd annotated vcf"
     add_samples_on_b38_cadd_vcf ${b38_invcf} ${b38_cadd_vcf} ${b38_outvcf}
 }
@@ -308,13 +308,13 @@ function main {
     local invcf=$1
     local outvcf=$2
     local merge_script=$3
-    local migrate_script=$4
+    local integrate_script=$4
 
     if is_empty_vcf ${invcf} ; then
         log "No variants to process. Copying files over..."
         copy_over_vcf ${invcf} ${outvcf} ;
     else
-        annotate_vcf ${invcf} ${outvcf} ${merge_script} ${migrate_script};
+        annotate_vcf ${invcf} ${outvcf} ${merge_script} ${integrate_script};
     fi
 
     log 'All Done'
