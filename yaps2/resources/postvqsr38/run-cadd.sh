@@ -54,19 +54,27 @@ function copy_over_vcf {
 function vcf_subtract_samples {
     local vcf=$1
 
+    log "(vcf_subtract_samples) calling bcftools subprocess"
+    local cmd="
     cat <(${BCFTOOLS} view -h ${vcf} | head -n -1) \
         <(${BCFTOOLS} view -h ${vcf} | tail -n 1 | cut -f1-8) \
         <(${BCFTOOLS} view -H ${vcf} | cut -f1-8)
+    "
+    run_cmd "${cmd}"
 }
 
 function vcf_add_samples {
     local no_samples_vcf=$1
     local samples_vcf=$2
 
+    log "(vcf_add_samples) calling bcftools subprocess"
+    local cmd="
     cat <(${BCFTOOLS} view -h ${no_samples_vcf} | head -n -1) \
         <(${BCFTOOLS} view -h ${samples_vcf} | tail -n 1 ) \
         <(paste <(${BCFTOOLS} view -H ${no_samples_vcf}) \
                 <(${BCFTOOLS} view -H ${samples_vcf} | cut -f9-))
+    "
+    run_cmd "${cmd}"
 }
 
 function tabix_and_finalize_vcf {
