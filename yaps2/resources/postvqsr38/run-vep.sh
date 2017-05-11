@@ -1,10 +1,20 @@
 #!/bin/bash
 
-set -eo pipefail
-
 # this script is meant to be run inside docker image willmclaren/ensembl-vep:release_88
 # see: https://hub.docker.com/r/willmclaren/ensembl-vep/
 #      https://github.com/Ensembl/ensembl-vep/blob/release/88/docker/Dockerfile
+
+set -eo pipefail
+
+# use the bgzip and tabix setup with this docker image
+BGZIP=/usr/local/bin/bgzip
+TABIX=/usr/local/bin/tabix
+
+# use a personal install of bcftools1.4
+BCFTOOLS=/gscmnt/gc2802/halllab/idas/software/local/bin/bcftools1.4
+
+# ensure the lzma library is available for bcftools1.4
+export LD_LIBRARY_PATH=/gscmnt/gc2802/halllab/idas/software/xz-5.2.3/lib:${LD_LIBRARY_PATH}
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
 
@@ -40,6 +50,34 @@ function copy_over_vcf {
 
     cp -v ${invcf} ${outvcf}
     cp -v ${invcf}.tbi ${outvcf}.tbi
+}
+
+function vcf_subtract_samples {
+    local vcf=$1
+
+    log "(vcf_subtract_samples) calling bcftools subprocess"
+    local cmd="
+    set -eo pipefail; \
+    cat <(${BCFTOOLS} view -h ${vcf} | head -n -1) \
+        <(${BCFTOOLS} view -h ${vcf} | tail -n 1 | cut -f1-8) \
+        <(${BCFTOOLS} view -H ${vcf} | cut -f1-8)
+    "
+    run_cmd "${cmd}"
+}
+
+function vcf_add_samples {
+    local no_samples_vcf=$1
+    local samples_vcf=$2
+
+    log "(vcf_add_samples) calling bcftools subprocess"
+    local cmd="
+    set -eo pipefail; \
+    cat <(${BCFTOOLS} view -h ${no_samples_vcf} | head -n -1) \
+        <(${BCFTOOLS} view -h ${samples_vcf} | tail -n 1 ) \
+        <(paste <(${BCFTOOLS} view -H ${no_samples_vcf}) \
+                <(${BCFTOOLS} view -H ${samples_vcf} | cut -f9-))
+    "
+    run_cmd "${cmd}"
 }
 
 function tabix_and_finalize_vcf {
@@ -114,6 +152,23 @@ function run_vep {
 	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
 
     echo ${outvcf}
+}
+
+function add_samples_to_vep_vcf {
+    local vepvcf=$1
+    local invcf=$2
+    local outvcf=$3
+
+    if [[ -e "${outvcf}" ]]; then
+        log "shortcutting add_samples_to_vep_vcf"
+        return 0;
+    fi
+
+    local tmpvcf=${outvcf}.tmp
+
+    cmd="vcf_add_samples ${vepvcf} ${invcf} | ${BGZIP} -c >${tmpvcf}"
+    run_cmd "${cmd}"
+    tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
 }
 
 function main {
