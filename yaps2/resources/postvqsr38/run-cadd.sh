@@ -106,13 +106,12 @@ function run_liftover_hg19 {
     local reject=${outdir}/hg19.unmapped.vcf.gz
     local logfile=${outdir}/picard.hg19.log
 
-    if [[ -e "${outvcf}" ]]; then
+    if [[ -e "${outvcf}" ]] && [[ -e "${outvcf}.tbi" ]] && [[ -e "${logfile}" ]] \
+        && grep -q 'picard.vcf.LiftoverVcf done' ${logfile} ; then
         log "shortcutting run_liftover_hg19"
         echo ${outvcf}
         return 0;
     fi
-
-    local tmpvcf=${outvcf}.tmp
 
     local chain=/gscmnt/gc2802/halllab/aregier/jira/BIO-2228/hg38ToHg19.over.chain.gz
     local reference=/gscmnt/gc2719/halllab/genomes/human/GRCh37/hg19_ucsc/hg19.fa
@@ -123,7 +122,7 @@ function run_liftover_hg19 {
         -jar ${PICARD} \
         LiftoverVcf \
         I=${invcf} \
-        O=${tmpvcf} \
+        O=${outvcf} \
         C=${chain} \
         REJECT=${reject} \
         R=${reference} \
@@ -132,7 +131,6 @@ function run_liftover_hg19 {
     "
 
     run_cmd "${cmd1}"
-	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
     echo ${outvcf}
 }
 
@@ -143,13 +141,12 @@ function run_liftover_grc37 {
     local reject=${outdir}/grc37.unmapped.vcf.gz
     local logfile=${outdir}/picard.grc37.log
 
-    if [[ -e "${outvcf}" ]]; then
+    if [[ -e "${outvcf}" ]] && [[ -e "${outvcf}.tbi" ]] && [[ -e "${logfile}" ]] \
+        && grep -q 'picard.vcf.LiftoverVcf done' ${logfile} ; then
         log "shortcutting run_liftover_grc37"
         echo ${outvcf}
         return 0;
     fi
-
-    local tmpvcf=${outvcf}.tmp
 
     local chain=/gscmnt/gc2802/halllab/aregier/jira/BIO-2228/hg19ToGRCh37.over.chain.gz
     local reference=/gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa
@@ -160,7 +157,7 @@ function run_liftover_grc37 {
         -jar ${PICARD} \
         LiftoverVcf \
         I=${invcf} \
-        O=${tmpvcf} \
+        O=${outvcf} \
         C=${chain} \
         REJECT=${reject} \
         R=${reference} \
@@ -169,7 +166,6 @@ function run_liftover_grc37 {
     "
 
     run_cmd "${cmd1}"
-	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
     echo ${outvcf}
 }
 
