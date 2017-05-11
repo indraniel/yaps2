@@ -78,7 +78,7 @@ function tabix_and_finalize_vcf {
 
 function prune_samples_on_b38_vcf {
     local invcf=$1
-    local outdir=$(dirname ${invcf})
+    local outdir=${2:-$(dirname ${invcf})}
     local outvcf=${outdir}/b38.nosamples.vcf.gz
 
     if [[ -e "${outvcf}" ]]; then
@@ -289,7 +289,7 @@ function annotate_vcf {
     local migrate_script=$4
 
     log "Remove samples on b38 input vcf"
-    local b38_invcf_no_samples=$(prune_samples_on_b38_vcf ${b38_invcf})
+    local b38_invcf_no_samples=$(prune_samples_on_b38_vcf ${b38_invcf} $(dirname ${b38_outvcf}))
     log "Entering liftOver hg19"
     local hg19_vcf=$(run_liftover_hg19 ${b38_invcf_no_samples})
     log "Entering liftOver GRCh37"
