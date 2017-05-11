@@ -180,7 +180,8 @@ function main {
         log "No variants to process. Copying files over..."
         copy_over_vcf ${invcf} ${outvcf} ;
     else
-        local outdir=$(dirname ${outvcf})
+        local outdir=$(dirname ${outvcf})/scratch
+        mkdir -p ${outdir}
         log "Entering run_vep"
         local vepvcf=$(run_vep ${invcf} ${outdir})
         log "Entering add_samples_to_vep_vcf"
