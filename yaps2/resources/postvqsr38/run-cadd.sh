@@ -2,6 +2,10 @@
 
 set -eo pipefail
 
+# http://stackoverflow.com/questions/9893667/is-there-a-way-to-write-a-bash-function-which-aborts-the-whole-execution-no-mat
+trap "exit 1" TERM
+export TOP_PID=$$
+
 AWK=/usr/bin/awk
 
 JAVA=/gapp/x64linux/opt/java/jdk/jdk1.8.0_60/bin/java
@@ -24,7 +28,7 @@ function run_cmd {
     eval "${cmd}"
     if [[ $? -ne 0 ]]; then
         log "[err] Problem running command: ${cmd} !"
-        exit 1
+        kill -s TERM $TOP_PID
     fi
 }
 
