@@ -288,8 +288,11 @@ function annotate_vcf {
     local merge_script=$3
     local integrate_script=$4
 
+    local scratch_dir=$(dirname ${b38_outvcf})/scratch
+    mkdir -p ${scratch_dir}
+
     log "Remove samples on b38 input vcf"
-    local b38_invcf_no_samples=$(prune_samples_on_b38_vcf ${b38_invcf} $(dirname ${b38_outvcf}))
+    local b38_invcf_no_samples=$(prune_samples_on_b38_vcf ${b38_invcf} ${scratch_dir})
     log "Entering liftOver hg19"
     local hg19_vcf=$(run_liftover_hg19 ${b38_invcf_no_samples})
     log "Entering liftOver GRCh37"
