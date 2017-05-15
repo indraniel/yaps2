@@ -34,15 +34,47 @@ def annotation_type_headers(annotation_type):
                 'ID' : 'CADD',
                 'Number' : 'A',
                 'Type' : 'Float',
-                'Description' : 'CADD score'
+                'Description' : 'CADD score',
             },
             {
                 'ID' : 'CADD_RAW',
                 'Number' : 'A',
                 'Type' : 'Float',
-                'Description' : 'Raw CADD score'
+                'Description' : 'Raw CADD score',
             }
         ],
+        '1000G' : [
+            {
+                'ID' : '1KG_EAS_AF',
+                'Number' : 'A',
+                'Type' : 'Float',
+                'Description' : 'Allele frequency in the EAS populations calculated from AC and AN, in the range (0,1)',
+            },
+            {
+                'ID' : '1KG_EUR_AF',
+                'Number' : 'A',
+                'Type' : 'Float',
+                'Description' : 'Allele frequency in the EUR populations calculated from AC and AN, in the range (0,1)',
+            },
+            {
+                'ID' : '1KG_AFR_AF',
+                'Number' : 'A',
+                'Type' : 'Float',
+                'Description' : 'Allele frequency in the AFR populations calculated from AC and AN, in the range (0,1)',
+            },
+            {
+                'ID' : '1KG_AMR_AF',
+                'Number' : 'A',
+                'Type' : 'Float',
+                'Description' : 'Allele frequency in the AMR populations calculated from AC and AN, in the range (0,1)',
+            },
+            {
+                'ID' : '1KG_SAS_AF',
+                'Number' : 'A',
+                'Type' : 'Float',
+                'Description' : 'Allele frequency in the SAS populations calculated from AC and AN, in the range (0,1)',
+            },
+        ]
     }
 
     return headers[annotation_type]
@@ -50,6 +82,7 @@ def annotation_type_headers(annotation_type):
 def annotation_type_info_fields(annotation_type):
     fields = {
         'cadd' : ['CADD', 'CADD_RAW'],
+        '1000G': ['1KG_EAS_AF', '1KG_EUR_AF', '1KG_AFR_AF', '1KG_AMR_AF', '1KG_SAS_AF'],
     }
 
     return fields[annotation_type]
@@ -148,7 +181,7 @@ def unliftover_vcf(b38_vcf, b37_vcf, annotation_type, auto_fill):
               "& OriginalContig/OriginalStart INFO fields"))
 @click.option('--annotation-type',
               required=True,
-              type=click.Choice(['cadd']),
+              type=click.Choice(['cadd', '1000G']),
               help="the type of annotation being incorporated")
 @click.option('--auto-fill', is_flag=True,
               help="ensure the annotation are always populated. Insert 'FIELD=.' if empty")
