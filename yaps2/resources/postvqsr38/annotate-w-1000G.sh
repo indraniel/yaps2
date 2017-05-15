@@ -290,7 +290,7 @@ function main {
         log "No variants to process. Copying files over..."
         copy_over_vcf ${invcf} ${outvcf} ;
     else
-        annotate_vcf ${invcf} ${outvcf} ${merge_script} ${integrate_script};
+        annotate_vcf ${invcf} ${outvcf} ${integrate_script};
     fi
 
     log 'All Done'
