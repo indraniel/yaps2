@@ -866,9 +866,10 @@ def annotation_1000G(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
         'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/annotate-w-1000G.sh'),
+        'integrate_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/integrate-b37-annotations-to-b38.py'),
     }
     cmd_args = merge_params(default, args)
-    cmd = "{script} {in_vcf} {out_vcf} >{out_log} 2>&1".format(**cmd_args)
+    cmd = "{script} {in_vcf} {out_vcf} {integrate_script} >{out_log} 2>&1".format(**cmd_args)
     return cmd
 
 def annotation_1000G_lsf_params(email, queue):
