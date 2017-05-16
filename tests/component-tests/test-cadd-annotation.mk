@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 MKFILE_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# assume we're running inside and LSF job
+# assume we're running inside an LSF job
 WORKSPACE := /tmp/$(LSB_JOBID).tmpdir/1kg-test
 
 # location of a python 2.7.x virtualenv 
