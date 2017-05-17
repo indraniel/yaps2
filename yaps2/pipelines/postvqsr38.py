@@ -81,14 +81,12 @@ class Pipeline(object):
         self.workflow.run(set_successful=False, log_out_dir_func=custom_log_dir, db_task_flush=task_flush)
 
     def construct_pipeline(self):
-        # 1. remove unused alternates
-        remove_ac_0_tasks = self.create_remove_ac_0_tasks(1)
         # 2. calculate sample missingness (counting phase)
-        count_sample_missingness_tasks = self.create_count_sample_missingness_tasks(remove_ac_0_tasks, 2)
+        count_sample_missingness_tasks = self.create_count_sample_missingness_tasks(2)
         # 2.1 calculate sample missingness (merge and calculation phase)
         calculate_sample_missingness_task = self.create_calculate_sample_missingness_task(count_sample_missingness_tasks, 2.1)
         # 3. denormalize, decompose, and uniq
-        dnu_tasks = self.create_decompose_normalize_unique_tasks(remove_ac_0_tasks, 3)
+        dnu_tasks = self.create_decompose_normalize_unique_tasks(3)
         # 4. remove symbolic alleles
         rsa_tasks = self.create_remove_symbolic_deletion_tasks(dnu_tasks, 4)
         # 5. filter missingness
@@ -512,7 +510,7 @@ class Pipeline(object):
 
         return tasks
 
-    def create_decompose_normalize_unique_tasks(self, parent_tasks, step_number):
+    def create_decompose_normalize_unique_tasks(self, step_number):
         tasks = []
         stage = self._construct_task_name('decompose-normalize-uniq', step_number)
         basedir = os.path.join(self.config.rootdir, stage)
@@ -524,14 +522,13 @@ class Pipeline(object):
         )
         lsf_params_json = to_json(lsf_params)
 
-        for ptask in parent_tasks:
-            chrom = ptask.params['in_chrom']
+        for chrom in self.config.chroms:
             output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
             output_log = 'decompose-normalize-unique-{}.log'.format(chrom)
             task = {
                 'func' : normalize_decompose_unique,
                 'params' : {
-                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_vcf' : self.config.vcfs[chrom],
                     'in_chrom' : chrom,
                     'out_vcf' : os.path.join(basedir, chrom, output_vcf),
                     'out_log' : os.path.join(basedir, chrom, output_log),
@@ -539,7 +536,6 @@ class Pipeline(object):
                 'stage_name' : stage,
                 'uid' : '{chrom}'.format(chrom=chrom),
                 'drm_params' : lsf_params_json,
-                'parents' : [ptask],
             }
             tasks.append( self.workflow.add_task(**task) )
 
@@ -576,7 +572,7 @@ class Pipeline(object):
         summary_task = self.workflow.add_task(**task)
         return summary_task
 
-    def create_count_sample_missingness_tasks(self, parent_tasks, step_number):
+    def create_count_sample_missingness_tasks(self, step_number):
         tasks = []
         stage = self._construct_task_name('count-sample-missingness', step_number)
         basedir = os.path.join(self.config.rootdir, stage)
@@ -588,8 +584,7 @@ class Pipeline(object):
         )
         lsf_params_json = to_json(lsf_params)
 
-        for ptask in parent_tasks:
-            chrom = ptask.params['in_chrom']
+        for chrom in self.config.chroms:
 
             # only count missing genotypes on chromosomes 1-22 (not X, Y, or MT)
             if not chrom[0].isdigit() : continue
@@ -599,42 +594,9 @@ class Pipeline(object):
             task = {
                 'func' : count_sample_missingness,
                 'params' : {
-                    'in_vcf' : ptask.params['out_vcf'],
+                    'in_vcf' : self.config.vcfs[chrom],
                     'in_chrom' : chrom,
                     'out_json' : os.path.join(basedir, chrom, output_json),
-                    'out_log' : os.path.join(basedir, chrom, output_log),
-                },
-                'stage_name' : stage,
-                'uid' : '{chrom}'.format(chrom=chrom),
-                'drm_params' : lsf_params_json,
-                'parents' : [ptask],
-            }
-            tasks.append( self.workflow.add_task(**task) )
-
-        return tasks
-
-    def create_remove_ac_0_tasks(self, step_number):
-        tasks = []
-        stage = self._construct_task_name('select-variants-ac-0-removal', step_number)
-        basedir = os.path.join(self.config.rootdir, stage)
-
-        lsf_params = get_lsf_params(
-                gatk_select_variants_remove_ac_0_lsf_params,
-                self.config.email,
-                self.config.docker
-        )
-        lsf_params_json = to_json(lsf_params)
-
-        for chrom in self.config.chroms:
-            vcf = self.config.vcfs[chrom]
-            output_vcf = 'combined.c{chrom}.vcf.gz'.format(chrom=chrom)
-            output_log = 'select-variants-chrom-{}-gatk.log'.format(chrom)
-            task = {
-                'func'   : gatk_select_variants_remove_ac_0,
-                'params' : {
-                    'in_chrom' : chrom,
-                    'in_vcf' : vcf,
-                    'out_vcf' : os.path.join(basedir, chrom, output_vcf),
                     'out_log' : os.path.join(basedir, chrom, output_log),
                 },
                 'stage_name' : stage,
@@ -1002,37 +964,6 @@ def count_sample_missingness(in_vcf, in_chrom, out_json, out_log):
     return cmd
 
 def count_sample_missingness_lsf_params(email, queue):
-    return  {
-        'u' : email,
-        'N' : None,
-        'q' : queue,
-        'M' : 8000000,
-        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
-    }
-
-def gatk_select_variants_remove_ac_0(in_chrom, in_vcf, out_vcf, out_log):
-    args = locals()
-    default = {
-        'java' : '/gapp/x64linux/opt/java/jre/jre1.7.0_45/bin/java',
-        'jar'  : '/usr/share/java/GenomeAnalysisTK-3.4.jar',
-        'java_opts' : "-Xmx4096m",
-        'reference' : '/gscmnt/gc2719/halllab/genomes/human/GRCh37/1kg_phase1/human_g1k_v37.fasta',
-    }
-
-    cmd_args = merge_params(default, args)
-
-    cmd = ( "{java} -jar {jar} "
-            "-T SelectVariants -R {reference} "
-            "--removeUnusedAlternates "
-            "-V {in_vcf} "
-            "-L {in_chrom} "
-            "-o {out_vcf} "
-            ">{out_log} "
-            "2>&1").format(**cmd_args)
-
-    return cmd
-
-def gatk_select_variants_remove_ac_0_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
