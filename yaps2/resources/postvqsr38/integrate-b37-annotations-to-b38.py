@@ -87,7 +87,7 @@ def annotation_type_info_fields(annotation_type):
 
     return fields[annotation_type]
 
-def create_b37_annotation_dictionary(b37_vcf, annotation_type):
+def create_b37_annotation_dictionary(b37_vcf, annotation_type, update_id_flag):
     data = {}
     fields = annotation_type_info_fields(annotation_type)
 
@@ -101,6 +101,9 @@ def create_b37_annotation_dictionary(b37_vcf, annotation_type):
 	for f in fields:
             value = variant.INFO.get(f, '.')
             field_data[f] = value if value else '.'
+
+        if update_id_flag and (variant.ID is not None):
+            field_data['ID'] = variant.ID
 
         if (chrom is None) or (pos_b38 is None):
             msg = ("In '{}' found no 'OriginalContig' and/or 'OriginalStart' "
@@ -117,13 +120,18 @@ def create_b37_annotation_dictionary(b37_vcf, annotation_type):
 
     return data
 
-def update_annotations(variant, new_annotations):
-    for field in new_annotations:
+def update_annotations(variant, anno_fields, new_annotations):
+    for field in anno_fields:
         fmt = '{:.4f}' if is_float(new_annotations[field]) else '{}'
         variant.INFO[field] = fmt.format(new_annotations[field])
     return variant
 
-def update_variant(variant, b37_annotations, anno_fields, autofill):
+def update_vcf_id(variant, new_id):
+    if new_id is not None:
+        variant.ID = new_id
+    return variant
+
+def update_variant(variant, b37_annotations, anno_fields, autofill, update_id):
     chrom = unicode(variant.CHROM)
     pos = unicode(variant.POS)
     ref = unicode(variant.REF)
@@ -131,7 +139,9 @@ def update_variant(variant, b37_annotations, anno_fields, autofill):
 
     key = (chrom, pos, ref, alt)
     if key in b37_annotations:
-        variant = update_annotations(variant, b37_annotations[key])
+        variant = update_annotations(variant, anno_fields, b37_annotations[key])
+        if update_id:
+            variant = update_vcf_id(variant, b37_annotations[key].get('ID', None))
         return variant
 
     # try alternative keys based on the reverse complements
@@ -139,24 +149,28 @@ def update_variant(variant, b37_annotations, anno_fields, autofill):
     revcomp_alt = ','.join([reverse_complement(x) for x in variant.ALT])
     key = (chrom, pos, revcomp_ref, revcomp_alt)
     if key in b37_annotations:
-        variant = update_annotations(variant, b37_annotations[key])
+        variant = update_annotations(variant, anno_fields, b37_annotations[key])
+        if update_id:
+            variant = update_vcf_id(variant, b37_annotations[key].get('ID', None))
         return variant
 
     # last resort, if we need to always autofill the fields
     if autofill:
         new_annotations = { x : '.' for x in anno_fields }
-        variant = update_annotations(variant, new_annotations)
+        variant = update_annotations(variant, anno_fields, new_annotations)
+        if update_id:
+            variant = update_vcf_id(variant, b37_annotations[key].get('ID', None))
         return variant
 
     # otherwise do nothing
     return variant
 
-def unliftover_vcf(b38_vcf, b37_vcf, annotation_type, auto_fill):
+def unliftover_vcf(b38_vcf, b37_vcf, annotation_type, auto_fill, update_id):
     new_info_headers = annotation_type_headers(annotation_type)
     new_annotation_fields = annotation_type_info_fields(annotation_type)
 
     log("Collecting the build 37 vcf annotation information")
-    b37_annotations = create_b37_annotation_dictionary(b37_vcf, annotation_type)
+    b37_annotations = create_b37_annotation_dictionary(b37_vcf, annotation_type, update_id)
 
     log("Processing the build38 vcf")
     vcf = VCF(b38_vcf)
@@ -167,7 +181,7 @@ def unliftover_vcf(b38_vcf, b37_vcf, annotation_type, auto_fill):
     out = Writer('-', vcf)
 
     for variant in vcf:
-        variant = update_variant(variant, b37_annotations, new_annotation_fields, auto_fill)
+        variant = update_variant(variant, b37_annotations, new_annotation_fields, auto_fill, update_id)
         out.write_record(variant)
 
     out.close()
@@ -185,9 +199,11 @@ def unliftover_vcf(b38_vcf, b37_vcf, annotation_type, auto_fill):
               help="the type of annotation being incorporated")
 @click.option('--auto-fill', is_flag=True,
               help="ensure the annotation are always populated. Insert 'FIELD=.' if empty")
-def main(b38_vcf, annotated_b37_vcf, annotation_type, auto_fill):
+@click.option('--update-id', is_flag=True,
+              help="update the ID Field")
+def main(b38_vcf, annotated_b37_vcf, annotation_type, auto_fill, update_id):
     try:
-        unliftover_vcf(b38_vcf, annotated_b37_vcf, annotation_type, auto_fill)
+        unliftover_vcf(b38_vcf, annotated_b37_vcf, annotation_type, auto_fill, update_id)
         return 0
     except Exception, err:
         log('[err]: {}'.format(err))
