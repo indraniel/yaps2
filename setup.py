@@ -22,7 +22,7 @@ setup(
     url='https://github.com/indraniel/yaps2',
     dependency_links=[
         'https://github.com/indraniel/COSMOS2/tarball/enable-lsf-rebase#egg=cosmos-wfm-2.0.10.indraniel4',
-        'https://github.com/brentp/cyvcf2/tarball/276e642245777523b3acd42075a2857da90f1bf3#egg=cyvcf2-0.7.0',
+        'https://github.com/brentp/cyvcf2/tarball/d04777ab87fd10193d6b7ab4fe27d0e859aa8a84#egg=cyvcf2-0.7.5',
     ],
     install_requires=[
         'cosmos-wfm==2.0.10.indraniel4',
@@ -33,7 +33,7 @@ setup(
         'pandas==0.18.1',
         'seaborn==0.7.1',
         'Cython==0.25.2',
-        'cyvcf2==0.7.0',
+        'cyvcf2==0.7.5',
         'bx-python==0.7.3',
         'pysam==0.9.1.4',
     ],
