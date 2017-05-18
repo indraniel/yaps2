@@ -7,7 +7,7 @@ MKFILE_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 WORKSPACE := /tmp/$(LSB_JOBID).tmpdir/1kg-test
 
 # location of a python 2.7.x virtualenv 
-VIRTUAL_ENV := /gscmnt/gc2802/halllab/idas/laboratory/yaps2-cadd-vep-test/test-venv
+export VIRTUAL_ENV := /gscmnt/gc2802/halllab/idas/laboratory/yaps2-cadd-vep-test/test-venv
 
 PRG_DIR          := $(MKFILE_PATH)/../../yaps2/resources/postvqsr38
 SCRIPT           := $(PRG_DIR)/annotate-w-1000G.sh

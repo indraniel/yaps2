@@ -1,6 +1,7 @@
 .PHONY: clean
 
 SHELL := /bin/bash
+PYTHON := /opt/pyenv/.pyenv/versions/2.7.10/bin/python
 MKFILE_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # assume we're running inside an LSF job
@@ -24,7 +25,7 @@ TEST_ORIG_STATS := $(WORKSPACE)/out/b38.ab.orig.stats
 COMPARE_FILE := $(WORKSPACE)/out/compare.dat
 
 run:
-	python $(SCRIPT) $(TEST_INPUT_VCF) >$(TEST_OUTPUT_VCF)
+	$(PYTHON) $(SCRIPT) $(TEST_INPUT_VCF) >$(TEST_OUTPUT_VCF)
 	zcat $(TEST_INPUT_VCF) | perl $(ORIG_SCRIPT) >$(TEST_ORIG_OUTPUT_VCF)
 	$(BCFTOOLS) query -f '%CHROM\t%POS\t%REF\t%ALT{0}\t%INFO/HetAB\t%INFO/HetHomAltAB\n' $(TEST_OUTPUT_VCF) > $(TEST_OUTPUT_STATS)
 	$(BCFTOOLS) query -f '%CHROM\t%POS\t%REF\t%ALT{0}\t%INFO/AB\t%INFO/AB_HOM\n' $(TEST_ORIG_OUTPUT_VCF) > $(TEST_ORIG_STATS)
