@@ -4,7 +4,7 @@ SHELL := /bin/bash
 MKFILE_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # assume we're running inside an LSF job
-WORKSPACE := /tmp/$(LSB_JOBID).tmpdir/1kg-test
+WORKSPACE := /tmp/$(LSB_JOBID).tmpdir/cadd-test
 
 # location of a python 2.7.x virtualenv 
 export VIRTUAL_ENV := /gscmnt/gc2802/halllab/idas/laboratory/yaps2-cadd-vep-test/test-venv
