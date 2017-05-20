@@ -189,8 +189,8 @@ function run_1kg_annotation {
     local tmpvcf=${outvcf}.tmp
 
     # the 1000G annotation file
-    BIO_1984=/gscmnt/gc2802/halllab/idas/jira/BIO-1984
-    KGVCF=${BIO_1984}/data/manual/create-1000G-reformatted-af-annotations/
+    local BIO_1984=/gscmnt/gc2802/halllab/idas/jira/BIO-1984
+    local KGVCF=${BIO_1984}/data/manual/create-1000G-reformatted-af-annotations/
     KGVCF+=ALL.wgs.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.decompose.normalize.reheader.w_ids.reformatted_pop_af.vcf.gz
 
     local cmd1="
