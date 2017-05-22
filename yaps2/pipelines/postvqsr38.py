@@ -95,20 +95,20 @@ class Pipeline(object):
         allele_balance_annotation_tasks = self.create_allele_balance_annotation_tasks(filter_variant_missingness_tasks, 6)
         # 7. annotate with 1000G
         annotate_1000G_tasks = self.create_1000G_annotation_tasks(allele_balance_annotation_tasks, 7)
-        # 8. annotate with ExAC
-        annotate_ExAC_tasks = self.create_ExAC_annotation_tasks(annotate_1000G_tasks, 8)
+        # 8. annotate with gnomAD
+        annotate_gnomAD_tasks = self.create_gnomAD_annotation_tasks(annotate_1000G_tasks, 8)
         # 9. VEP annotation
-        annotate_vep_tasks = self.create_vep_annotation_tasks(annotate_ExAC_tasks, 9)
+        annotate_vep_tasks = self.create_vep_annotation_tasks(annotate_gnomAD_tasks, 9)
         # 10. CADD annotation
         annotate_cadd_tasks = self.create_cadd_annotation_tasks(annotate_vep_tasks, 10)
         # 11. VCF concatenation
         concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_cadd_tasks, 11)
         # 12. bcftools stats
-        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_ExAC_tasks, 12)
+        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_gnomAD_tasks, 12)
         # 12.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks, 12.1)
         # 13. GATK VariantEval
-        variant_eval_tasks = self.create_variant_eval_tasks(annotate_ExAC_tasks, 13)
+        variant_eval_tasks = self.create_variant_eval_tasks(annotate_gnomAD_tasks, 13)
         # 13.1. Merge & Plot GATK VariantEval Stats
         variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks, 13.1)
 
@@ -344,13 +344,13 @@ class Pipeline(object):
 
         return tasks
 
-    def create_ExAC_annotation_tasks(self, parent_tasks, step_number):
+    def create_gnomAD_annotation_tasks(self, parent_tasks, step_number):
         tasks = []
-        stage = self._construct_task_name('annotate-w-ExAC', step_number)
+        stage = self._construct_task_name('annotate-w-gnomAD', step_number)
         basedir = os.path.join(self.config.rootdir, stage)
 
         lsf_params = get_lsf_params(
-                annotation_ExAC_lsf_params,
+                annotation_gnomAD_lsf_params,
                 self.config.email,
                 self.config.docker
         )
@@ -358,10 +358,10 @@ class Pipeline(object):
 
         for ptask in parent_tasks:
             chrom = ptask.params['in_chrom']
-            output_vcf = 'ExAC-annotated.c{}.vcf.gz'.format(chrom)
-            output_log = 'ExAC-annotate.{}.log'.format(chrom)
+            output_vcf = 'gnomAD-annotated.c{}.vcf.gz'.format(chrom)
+            output_log = 'gnomAD-annotate.{}.log'.format(chrom)
             task = {
-                'func' : annotation_ExAC,
+                'func' : annotation_gnomAD,
                 'params' : {
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
@@ -806,16 +806,22 @@ def annotation_vep_lsf_params(email, queue):
         'R' : 'select[mem>60000 && ncpus>8] rusage[mem=68000]',
     }
 
-def annotation_ExAC(in_vcf, in_chrom, out_vcf, out_log):
+def annotation_gnomAD(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
-        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/annotate-w-ExAC.sh'),
+        'main_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/annotate-w-gnomAD.sh'),
+        'b37_to_b38_integration_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/integrate-b37-annotations-to-b38.py'),
     }
     cmd_args = merge_params(default, args)
-    cmd = "{script} {in_vcf} {out_vcf} >{out_log} 2>&1".format(**cmd_args)
+    cmd = ("{main_script} "
+           "{in_chrom} "
+           "{in_vcf} "
+           "{out_vcf} "
+           "{b37_to_b38_integration_script} "
+           ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
-def annotation_ExAC_lsf_params(email, queue):
+def annotation_gnomAD_lsf_params(email, queue):
     return  {
         'u' : email,
         'N' : None,
