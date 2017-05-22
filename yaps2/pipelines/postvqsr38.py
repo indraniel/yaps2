@@ -81,40 +81,40 @@ class Pipeline(object):
         self.workflow.run(set_successful=False, log_out_dir_func=custom_log_dir, db_task_flush=task_flush)
 
     def construct_pipeline(self):
-        # 2. calculate sample missingness (counting phase)
-        count_sample_missingness_tasks = self.create_count_sample_missingness_tasks(2)
-        # 2.1 calculate sample missingness (merge and calculation phase)
-        calculate_sample_missingness_task = self.create_calculate_sample_missingness_task(count_sample_missingness_tasks, 2.1)
-        # 3. denormalize, decompose, and uniq
-        dnu_tasks = self.create_decompose_normalize_unique_tasks(3)
-        # 4. remove symbolic alleles
-        rsa_tasks = self.create_remove_symbolic_deletion_tasks(dnu_tasks, 4)
-        # 5. filter missingness
-        filter_variant_missingness_tasks = self.create_filter_variant_missingness_tasks(rsa_tasks, 5)
-        # 6. annotate allele balances
-        allele_balance_annotation_tasks = self.create_allele_balance_annotation_tasks(filter_variant_missingness_tasks, 6)
-        # 7. annotate with 1000G
-        annotate_1000G_tasks = self.create_1000G_annotation_tasks(allele_balance_annotation_tasks, 7)
-        # 8. annotate with gnomAD
-        annotate_gnomAD_tasks = self.create_gnomAD_annotation_tasks(annotate_1000G_tasks, 8)
-        # 9. VEP annotation
-        annotate_vep_tasks = self.create_vep_annotation_tasks(annotate_gnomAD_tasks, 9)
-        # 10. CADD annotation
-        annotate_cadd_tasks = self.create_cadd_annotation_tasks(annotate_vep_tasks, 10)
-        # 11. Low-Confidence-Region annotation
-        annotate_lcr_tasks = self.create_LCR_annotation_tasks(annotate_cadd_tasks, 11)
-        # 12. LINSIGHT annotation
-        annotate_linsight_tasks = self.create_LINSIGHT_annotation_tasks(annotate_lcr_tasks, 12)
-        # 13. VCF concatenation
-        concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_linsight_tasks, 13)
-        # 14. bcftools stats
-        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_gnomAD_tasks, 14)
-        # 14.1 Merge & Plot bcftools stats
-        bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks, 14.1)
-        # 15. GATK VariantEval
-        variant_eval_tasks = self.create_variant_eval_tasks(annotate_gnomAD_tasks, 15)
-        # 15.1. Merge & Plot GATK VariantEval Stats
-        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks, 15.1)
+        # 1. calculate sample missingness (counting phase)
+        count_sample_missingness_tasks = self.create_count_sample_missingness_tasks(1)
+        # 1.1 calculate sample missingness (merge and calculation phase)
+        calculate_sample_missingness_task = self.create_calculate_sample_missingness_task(count_sample_missingness_tasks, 1.1)
+        # 2. denormalize, decompose, and uniq
+        dnu_tasks = self.create_decompose_normalize_unique_tasks(2)
+        # 3. remove symbolic alleles
+        rsa_tasks = self.create_remove_symbolic_deletion_tasks(dnu_tasks, 3)
+        # 4. filter missingness
+        filter_variant_missingness_tasks = self.create_filter_variant_missingness_tasks(rsa_tasks, 4)
+        # 5. annotate allele balances
+        allele_balance_annotation_tasks = self.create_allele_balance_annotation_tasks(filter_variant_missingness_tasks, 5)
+        # 6. annotate with 1000G
+        annotate_1000G_tasks = self.create_1000G_annotation_tasks(allele_balance_annotation_tasks, 6)
+        # 7. annotate with gnomAD
+        annotate_gnomAD_tasks = self.create_gnomAD_annotation_tasks(annotate_1000G_tasks, 7)
+        # 8. VEP annotation
+        annotate_vep_tasks = self.create_vep_annotation_tasks(annotate_gnomAD_tasks, 8)
+        # 9. CADD annotation
+        annotate_cadd_tasks = self.create_cadd_annotation_tasks(annotate_vep_tasks, 9)
+        # 10. Low-Confidence-Region annotation
+        annotate_lcr_tasks = self.create_LCR_annotation_tasks(annotate_cadd_tasks, 10)
+        # 11. LINSIGHT annotation
+        annotate_linsight_tasks = self.create_LINSIGHT_annotation_tasks(annotate_lcr_tasks, 11)
+        # 12. VCF concatenation
+        concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_linsight_tasks, 12)
+        # 13. bcftools stats
+        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_gnomAD_tasks, 13)
+        # 13.1 Merge & Plot bcftools stats
+        bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks, 13.1)
+        # 14. GATK VariantEval
+        variant_eval_tasks = self.create_variant_eval_tasks(annotate_gnomAD_tasks, 14)
+        # 14.1. Merge & Plot GATK VariantEval Stats
+        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks, 14.1)
 
     def create_bcftools_stats_summary_task(self, parent_tasks, step_number):
         stage = self._construct_task_name('bcftools-stats-summary', step_number)
