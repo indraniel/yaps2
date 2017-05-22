@@ -13,7 +13,7 @@ from cyvcf2 import VCF, Writer
 
 def log(msg):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %T")
-    print('[{}] {}'.format(timestamp, msg), file=sys.stderr)
+    print('[-- {} --] {}'.format(timestamp, msg), file=sys.stderr)
 
 def is_float(s):
     return True if isinstance(s, float) else False
@@ -399,6 +399,14 @@ def annotation_type_headers(annotation_type):
                 'Description' : "Contains the indices of all alleles used as negative examples during training of random forests",
             },
         ],
+        'LINSIGHT' : [
+            {
+                'ID' : 'LINSIGHT',
+                'Number' : '1',
+                'Type' : 'Float',
+                'Description' : 'LINSIGHT score',
+            },
+        ],
     }
 
     return headers[annotation_type]
@@ -455,6 +463,7 @@ def annotation_type_info_fields(annotation_type):
 	    "GNOMAD_GENOME_AS_RF_POSITIVE_TRAIN",
 	    "GNOMAD_GENOME_AS_RF_NEGATIVE_TRAIN",
         ],
+        'LINSIGHT' : [ 'LINSIGHT' ],
     }
 
     return fields[annotation_type]
@@ -565,7 +574,7 @@ def unliftover_vcf(b38_vcf, b37_vcf, annotation_type, auto_fill, update_id):
               "& OriginalContig/OriginalStart INFO fields"))
 @click.option('--annotation-type',
               required=True,
-              type=click.Choice(['cadd', '1000G', 'gnomAD']),
+              type=click.Choice(['cadd', '1000G', 'gnomAD', 'LINSIGHT']),
               help="the type of annotation being incorporated")
 @click.option('--auto-fill', is_flag=True,
               help="ensure the annotation are always populated. Insert 'FIELD=.' if empty")
