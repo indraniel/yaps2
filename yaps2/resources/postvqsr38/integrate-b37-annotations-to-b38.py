@@ -158,8 +158,6 @@ def update_variant(variant, b37_annotations, anno_fields, autofill, update_id):
     if autofill:
         new_annotations = { x : '.' for x in anno_fields }
         variant = update_annotations(variant, anno_fields, new_annotations)
-        if update_id:
-            variant = update_vcf_id(variant, b37_annotations[key].get('ID', None))
         return variant
 
     # otherwise do nothing
