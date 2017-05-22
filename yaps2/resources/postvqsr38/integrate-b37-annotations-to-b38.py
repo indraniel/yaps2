@@ -74,7 +74,331 @@ def annotation_type_headers(annotation_type):
                 'Type' : 'Float',
                 'Description' : 'Allele frequency in the SAS populations calculated from AC and AN, in the range (0,1)',
             },
-        ]
+        ],
+        'gnomAD' : [
+##INFO=<ID=GNOMAD_EXOME_AC_AFR,Number=A,Type=Integer,Description="Allele count in African/African American genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_AFR',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in African/African American genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_AMR,Number=A,Type=Integer,Description="Allele count in Admixed American genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_AMR',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Admixed American genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_ASJ,Number=A,Type=Integer,Description="Allele count in Ashkenazi Jewish genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_ASJ',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Ashkenazi Jewish genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_EAS,Number=A,Type=Integer,Description="Allele count in East Asian genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_EAS',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in East Asian genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_FIN,Number=A,Type=Integer,Description="Allele count in Finnish genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_FIN',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Finnish genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_NFE,Number=A,Type=Integer,Description="Allele count in Non-Finnish European genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_NFE',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Non-Finnish European genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_OTH,Number=A,Type=Integer,Description="Allele count in Other (population not assigned) genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_OTH',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Other (population not assigned) genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_SAS,Number=A,Type=Integer,Description="Allele count in South Asian genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_SAS',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in South Asian genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_AFR,Number=1,Type=Integer,Description="Total number of alleles in African/African American called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_AFR',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in African/African American called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_AMR,Number=1,Type=Integer,Description="Total number of alleles in Admixed American called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_AMR',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Admixed American called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_ASJ,Number=1,Type=Integer,Description="Total number of alleles in Ashkenazi Jewish called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_ASJ',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Ashkenazi Jewish called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_EAS,Number=1,Type=Integer,Description="Total number of alleles in East Asian called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_EAS',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in East Asian called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_FIN,Number=1,Type=Integer,Description="Total number of alleles in Finnish called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_FIN',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Finnish called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_NFE,Number=1,Type=Integer,Description="Total number of alleles in Non-Finnish European called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_NFE',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Non-Finnish European called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_OTH,Number=1,Type=Integer,Description="Total number of alleles in Other (population not assigned) called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_OTH',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Other (population not assigned) called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_SAS,Number=1,Type=Integer,Description="Total number of alleles in South Asian called genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_SAS',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in South Asian called genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_raw,Number=A,Type=Integer,Description="Allele counts before filtering low-confidence genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_raw',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele counts before filtering low-confidence genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_raw,Number=1,Type=Integer,Description="Total number of alleles before filtering low-confidence genotypes">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_raw',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles before filtering low-confidence genotypes",
+            },
+##INFO=<ID=GNOMAD_EXOME_AC_POPMAX,Number=A,Type=Integer,Description="AC in the population with the max AF">
+            {
+                'ID' : 'GNOMAD_EXOME_AC_POPMAX',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "AC in the population with the max AF",
+            },
+##INFO=<ID=GNOMAD_EXOME_AN_POPMAX,Number=A,Type=Integer,Description="AN in the population with the max AF">
+            {
+                'ID' : 'GNOMAD_EXOME_AN_POPMAX',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "AN in the population with the max AF",
+            },
+##INFO=<ID=GNOMAD_EXOME_AS_RF,Number=A,Type=Float,Description="Random Forests probability for each allele">
+            {
+                'ID' : 'GNOMAD_EXOME_AS_RF',
+                'Number' : 'A',
+                'Type' : 'Float',
+                'Description' : "Random Forests probability for each allele",
+            },
+##INFO=<ID=GNOMAD_EXOME_AS_FilterStatus,Number=A,Type=String,Description="Random Forests filter status for each allele">
+            {
+                'ID' : 'GNOMAD_EXOME_AS_FilterStatus',
+                'Number' : 'A',
+                'Type' : 'String',
+                'Description' : "Random Forests filter status for each allele",
+            },
+##INFO=<ID=GNOMAD_EXOME_AS_RF_POSITIVE_TRAIN,Number=.,Type=Integer,Description="Contains the indices of all alleles used as positive examples during training of random forests">
+            {
+                'ID' : 'GNOMAD_EXOME_AS_RF_POSITIVE_TRAIN',
+                'Number' : '.',
+                'Type' : 'Integer',
+                'Description' : "Contains the indices of all alleles used as positive examples during training of random forests",
+            },
+##INFO=<ID=GNOMAD_EXOME_AS_RF_NEGATIVE_TRAIN,Number=.,Type=Integer,Description="Contains the indices of all alleles used as negative examples during training of random forests">
+            {
+                'ID' : 'GNOMAD_EXOME_AS_RF_NEGATIVE_TRAIN',
+                'Number' : '.',
+                'Type' : 'Integer',
+                'Description' : "Contains the indices of all alleles used as negative examples during training of random forests",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_AFR,Number=A,Type=Integer,Description="Allele count in African/African American genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_AFR',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in African/African American genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_AMR,Number=A,Type=Integer,Description="Allele count in Admixed American genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_AMR',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Admixed American genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_ASJ,Number=A,Type=Integer,Description="Allele count in Ashkenazi Jewish genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_ASJ',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Ashkenazi Jewish genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_EAS,Number=A,Type=Integer,Description="Allele count in East Asian genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_EAS',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in East Asian genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_FIN,Number=A,Type=Integer,Description="Allele count in Finnish genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_FIN',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Finnish genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_NFE,Number=A,Type=Integer,Description="Allele count in Non-Finnish European genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_NFE',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Non-Finnish European genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_OTH,Number=A,Type=Integer,Description="Allele count in Other (population not assigned) genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_OTH',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele count in Other (population not assigned) genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_AFR,Number=1,Type=Integer,Description="Total number of alleles in African/African American called genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_AFR',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in African/African American called genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_AMR,Number=1,Type=Integer,Description="Total number of alleles in Admixed American called genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_AMR',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Admixed American called genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_ASJ,Number=1,Type=Integer,Description="Total number of alleles in Ashkenazi Jewish called genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_ASJ',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Ashkenazi Jewish called genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_EAS,Number=1,Type=Integer,Description="Total number of alleles in East Asian called genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_EAS',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in East Asian called genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_FIN,Number=1,Type=Integer,Description="Total number of alleles in Finnish called genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_FIN',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Finnish called genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_NFE,Number=1,Type=Integer,Description="Total number of alleles in Non-Finnish European called genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_NFE',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Non-Finnish European called genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_OTH,Number=1,Type=Integer,Description="Total number of alleles in Other (population not assigned) called genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_OTH',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles in Other (population not assigned) called genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_raw,Number=A,Type=Integer,Description="Allele counts before filtering low-confidence genotypes, for each ALT allele, in the same order as listed">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_raw',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "Allele counts before filtering low-confidence genotypes, for each ALT allele, in the same order as listed",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_raw,Number=1,Type=Integer,Description="Total number of alleles before filtering low-confidence genotypes">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_raw',
+                'Number' : '1',
+                'Type' : 'Integer',
+                'Description' : "Total number of alleles before filtering low-confidence genotypes",
+            },
+##INFO=<ID=GNOMAD_GENOME_AC_POPMAX,Number=A,Type=Integer,Description="AC in the population with the max AF">
+            {
+                'ID' : 'GNOMAD_GENOME_AC_POPMAX',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "AC in the population with the max AF",
+            },
+##INFO=<ID=GNOMAD_GENOME_AN_POPMAX,Number=A,Type=Integer,Description="AN in the population with the max AF">
+            {
+                'ID' : 'GNOMAD_GENOME_AN_POPMAX',
+                'Number' : 'A',
+                'Type' : 'Integer',
+                'Description' : "AN in the population with the max AF",
+            },
+##INFO=<ID=GNOMAD_GENOME_AS_RF,Number=A,Type=Float,Description="Random Forests probability for each allele">
+            {
+                'ID' : 'GNOMAD_GENOME_AS_RF',
+                'Number' : 'A',
+                'Type' : 'Float',
+                'Description' : "Random Forests probability for each allele",
+            },
+##INFO=<ID=GNOMAD_GENOME_AS_FilterStatus,Number=A,Type=String,Description="Random Forests filter status for each allele">
+            {
+                'ID' : 'GNOMAD_GENOME_AS_FilterStatus',
+                'Number' : 'A',
+                'Type' : 'String',
+                'Description' : "Random Forests filter status for each allele",
+            },
+##INFO=<ID=GNOMAD_GENOME_AS_RF_POSITIVE_TRAIN,Number=.,Type=Integer,Description="Contains the indices of all alleles used as positive examples during training of random forests">
+            {
+                'ID' : 'GNOMAD_GENOME_AS_RF_POSITIVE_TRAIN',
+                'Number' : '.',
+                'Type' : 'Integer',
+                'Description' : "Contains the indices of all alleles used as positive examples during training of random forests",
+            },
+##INFO=<ID=GNOMAD_GENOME_AS_RF_NEGATIVE_TRAIN,Number=.,Type=Integer,Description="Contains the indices of all alleles used as negative examples during training of random forests">
+            {
+                'ID' : 'GNOMAD_GENOME_AS_RF_NEGATIVE_TRAIN',
+                'Number' : '.',
+                'Type' : 'Integer',
+                'Description' : "Contains the indices of all alleles used as negative examples during training of random forests",
+            },
+        ],
     }
 
     return headers[annotation_type]
@@ -83,6 +407,54 @@ def annotation_type_info_fields(annotation_type):
     fields = {
         'cadd' : ['CADD', 'CADD_RAW'],
         '1000G': ['1KG_EAS_AF', '1KG_EUR_AF', '1KG_AFR_AF', '1KG_AMR_AF', '1KG_SAS_AF'],
+        'gnomAD' : [
+	    "GNOMAD_EXOME_AC_AFR",
+	    "GNOMAD_EXOME_AC_AMR",
+	    "GNOMAD_EXOME_AC_ASJ",
+	    "GNOMAD_EXOME_AC_EAS",
+	    "GNOMAD_EXOME_AC_FIN",
+	    "GNOMAD_EXOME_AC_NFE",
+	    "GNOMAD_EXOME_AC_OTH",
+	    "GNOMAD_EXOME_AC_SAS",
+	    "GNOMAD_EXOME_AN_AFR",
+	    "GNOMAD_EXOME_AN_AMR",
+	    "GNOMAD_EXOME_AN_ASJ",
+	    "GNOMAD_EXOME_AN_EAS",
+	    "GNOMAD_EXOME_AN_FIN",
+	    "GNOMAD_EXOME_AN_NFE",
+	    "GNOMAD_EXOME_AN_OTH",
+	    "GNOMAD_EXOME_AN_SAS",
+	    "GNOMAD_EXOME_AC_raw",
+	    "GNOMAD_EXOME_AN_raw",
+	    "GNOMAD_EXOME_AC_POPMAX",
+	    "GNOMAD_EXOME_AN_POPMAX",
+	    "GNOMAD_EXOME_AS_RF",
+	    "GNOMAD_EXOME_AS_FilterStatus",
+	    "GNOMAD_EXOME_AS_RF_POSITIVE_TRAIN",
+	    "GNOMAD_EXOME_AS_RF_NEGATIVE_TRAIN",
+	    "GNOMAD_GENOME_AC_AFR",
+	    "GNOMAD_GENOME_AC_AMR",
+	    "GNOMAD_GENOME_AC_ASJ",
+	    "GNOMAD_GENOME_AC_EAS",
+	    "GNOMAD_GENOME_AC_FIN",
+	    "GNOMAD_GENOME_AC_NFE",
+	    "GNOMAD_GENOME_AC_OTH",
+	    "GNOMAD_GENOME_AN_AFR",
+	    "GNOMAD_GENOME_AN_AMR",
+	    "GNOMAD_GENOME_AN_ASJ",
+	    "GNOMAD_GENOME_AN_EAS",
+	    "GNOMAD_GENOME_AN_FIN",
+	    "GNOMAD_GENOME_AN_NFE",
+	    "GNOMAD_GENOME_AN_OTH",
+	    "GNOMAD_GENOME_AC_raw",
+	    "GNOMAD_GENOME_AN_raw",
+	    "GNOMAD_GENOME_AC_POPMAX",
+	    "GNOMAD_GENOME_AN_POPMAX",
+	    "GNOMAD_GENOME_AS_RF",
+	    "GNOMAD_GENOME_AS_FilterStatus",
+	    "GNOMAD_GENOME_AS_RF_POSITIVE_TRAIN",
+	    "GNOMAD_GENOME_AS_RF_NEGATIVE_TRAIN",
+        ],
     }
 
     return fields[annotation_type]
@@ -193,7 +565,7 @@ def unliftover_vcf(b38_vcf, b37_vcf, annotation_type, auto_fill, update_id):
               "& OriginalContig/OriginalStart INFO fields"))
 @click.option('--annotation-type',
               required=True,
-              type=click.Choice(['cadd', '1000G']),
+              type=click.Choice(['cadd', '1000G', 'gnomAD']),
               help="the type of annotation being incorporated")
 @click.option('--auto-fill', is_flag=True,
               help="ensure the annotation are always populated. Insert 'FIELD=.' if empty")
