@@ -44,11 +44,13 @@ def compute_allelic_balances(variant):
         numerator = alt_het_counts + (0.5 * alt_hom_alt_counts)
         het_hom_alt_ab = numerator / total_het_hom_alt_counts
 
-    return (het_ab, het_hom_alt_ab)
+    return (het_ab, het_hom_alt_ab, total_het_count, total_het_hom_alt_count)
 
-def update_variant(variant, het_ab, het_hom_alt_ab):
+def update_variant(variant, het_ab, het_hom_alt_ab, total_het_count, total_het_hom_alt_count):
     variant.INFO['HetAB'] = '{:.4f}'.format(het_ab)
     variant.INFO['HetHomAltAB'] = '{:.4f}'.format(het_hom_alt_ab)
+    variant.INFO['HetAB_DP'] = '{}'.format(total_het_count)
+    variant.INFO['HetHomAltAB_DP'] = '{}'.format(total_het_hom_alt_count)
     return variant
 
 def annotate_allelic_balance(vcffile, region):
@@ -61,10 +63,24 @@ def annotate_allelic_balance(vcffile, region):
         'Number' : '1'
     }
 
+    header_hetab_dp_param_info = {
+        'ID' : 'HetAB_DP',
+        'Description' : 'heterozygous genotype read depth',
+        'Type' : 'Integer',
+        'Number' : '1'
+    }
+
     header_het_hom_alt_ab_param_info = {
         'ID' : 'HetHomAltAB',
         'Description' : 'heterozygous + homozygous ALT genotype allele balance',
         'Type' : 'Float',
+        'Number' : '1'
+    }
+
+    header_het_hom_alt_ab_dp_param_info = {
+        'ID' : 'HetHomAltAB_DP',
+        'Description' : 'heterozygous + homozygous ALT genotype read depth',
+        'Type' : 'Integer',
         'Number' : '1'
     }
 
@@ -77,8 +93,8 @@ def annotate_allelic_balance(vcffile, region):
         total_sites += 1
         if is_biallelic(variant):
             noted_sites += 1
-            (hetab, het_hom_alt_ab) = compute_allelic_balances(variant)
-            variant = update_variant(variant, hetab, het_hom_alt_ab)
+            (hetab, het_hom_alt_ab, total_het_count, total_het_hom_alt_count) = compute_allelic_balances(variant)
+            variant = update_variant(variant, hetab, het_hom_alt_ab, total_het_count, total_het_hom_alt_count)
         out.write_record(variant)
 
     out.close()
