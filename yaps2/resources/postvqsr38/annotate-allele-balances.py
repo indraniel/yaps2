@@ -44,7 +44,7 @@ def compute_allelic_balances(variant):
         numerator = alt_het_counts + (0.5 * alt_hom_alt_counts)
         het_hom_alt_ab = numerator / total_het_hom_alt_counts
 
-    return (het_ab, het_hom_alt_ab, total_het_count, total_het_hom_alt_count)
+    return (het_ab, het_hom_alt_ab, total_het_counts, total_het_hom_alt_counts)
 
 def update_variant(variant, het_ab, het_hom_alt_ab, total_het_count, total_het_hom_alt_count):
     variant.INFO['HetAB'] = '{:.4f}'.format(het_ab)
@@ -85,7 +85,9 @@ def annotate_allelic_balance(vcffile, region):
     }
 
     vcf.add_info_to_header(header_hetab_param_info)
+    vcf.add_info_to_header(header_hetab_dp_param_info)
     vcf.add_info_to_header(header_het_hom_alt_ab_param_info)
+    vcf.add_info_to_header(header_het_hom_alt_ab_dp_param_info)
     out = Writer('-', vcf)
     (total_sites, noted_sites) = (0, 0)
 
