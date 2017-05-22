@@ -103,16 +103,18 @@ class Pipeline(object):
         annotate_cadd_tasks = self.create_cadd_annotation_tasks(annotate_vep_tasks, 10)
         # 11. Low-Confidence-Region annotation
         annotate_lcr_tasks = self.create_LCR_annotation_tasks(annotate_cadd_tasks, 11)
-        # 12. VCF concatenation
-        concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_lcr_tasks, 12)
-        # 13. bcftools stats
-        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_gnomAD_tasks, 13)
-        # 13.1 Merge & Plot bcftools stats
-        bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks, 13.1)
-        # 14. GATK VariantEval
-        variant_eval_tasks = self.create_variant_eval_tasks(annotate_gnomAD_tasks, 14)
-        # 14.1. Merge & Plot GATK VariantEval Stats
-        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks, 14.1)
+        # 12. LINSIGHT annotation
+        annotate_linsight_tasks = self.create_LINSIGHT_annotation_tasks(annotate_lcr_tasks, 12)
+        # 13. VCF concatenation
+        concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_linsight_tasks, 13)
+        # 14. bcftools stats
+        bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_gnomAD_tasks, 14)
+        # 14.1 Merge & Plot bcftools stats
+        bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks, 14.1)
+        # 15. GATK VariantEval
+        variant_eval_tasks = self.create_variant_eval_tasks(annotate_gnomAD_tasks, 15)
+        # 15.1. Merge & Plot GATK VariantEval Stats
+        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks, 15.1)
 
     def create_bcftools_stats_summary_task(self, parent_tasks, step_number):
         stage = self._construct_task_name('bcftools-stats-summary', step_number)
@@ -267,6 +269,40 @@ class Pipeline(object):
                     'in_vcf' : ptask.params['out_vcf'],
                     'in_chrom' : chrom,
                     'out_stats' : os.path.join(basedir, chrom, output_stats),
+                    'out_log' : os.path.join(basedir, chrom, output_log),
+                },
+                'stage_name' : stage,
+                'uid' : '{chrom}'.format(chrom=chrom),
+                'drm_params' : lsf_params_json,
+                'parents' : [ptask],
+            }
+            tasks.append( self.workflow.add_task(**task) )
+
+        return tasks
+
+    def create_LINSIGHT_annotation_tasks(self, parent_tasks, step_number):
+        tasks = []
+        stage = self._construct_task_name('LINSIGHT-annotation', step_number)
+        basedir = os.path.join(self.config.rootdir, stage)
+
+        lsf_params = get_lsf_params(
+                annotation_LINSIGHT_lsf_params,
+                self.config.email,
+                self.config.docker,
+                self.config.drm_queue
+        )
+        lsf_params_json = to_json(lsf_params)
+
+        for ptask in parent_tasks:
+            chrom = ptask.params['in_chrom']
+            output_vcf = 'b38.LINSIGHT.annotated.c{}.vcf.gz'.format(chrom)
+            output_log = 'LINSIGHT.annotation.{}.log'.format(chrom)
+            task = {
+                'func' : annotation_LINSIGHT,
+                'params' : {
+                    'in_vcf'  : ptask.params['out_vcf'],
+                    'in_chrom' : chrom,
+                    'out_vcf' : os.path.join(basedir, chrom, output_vcf),
                     'out_log' : os.path.join(basedir, chrom, output_log),
                 },
                 'stage_name' : stage,
@@ -793,6 +829,27 @@ def gatk_variant_eval_lsf_params(email, queue):
         'q' : queue,
         'M' : 10000000,
         'R' : 'select[mem>10000 && ncpus>8] rusage[mem=10000]',
+    }
+
+def annotation_LINSIGHT(in_vcf, in_chrom, out_vcf, out_log):
+    args = locals()
+    default = {
+        'main_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/annotate-w-LINSIGHT.sh'),
+    }
+    cmd_args = merge_params(default, args)
+    cmd = ("{main_script} "
+           "{in_vcf} "
+           "{out_vcf} "
+           ">{out_log} 2>&1" ).format(**cmd_args)
+    return cmd
+
+def annotation_LINSIGHT_lsf_params(email, queue):
+    return  {
+        'u' : email,
+        'N' : None,
+        'q' : queue,
+        'M' : 8000000,
+        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
     }
 
 def annotation_LCR(in_vcf, in_chrom, out_vcf, out_log):
