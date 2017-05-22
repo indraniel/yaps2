@@ -6,6 +6,10 @@
 
 set -eo pipefail
 
+# http://stackoverflow.com/questions/9893667/is-there-a-way-to-write-a-bash-function-which-aborts-the-whole-execution-no-mat
+trap "exit 1" TERM
+export TOP_PID=$$
+
 # use the bgzip and tabix setup with this docker image
 BGZIP=/usr/local/bin/bgzip
 TABIX=/usr/local/bin/tabix
@@ -18,6 +22,12 @@ export LD_LIBRARY_PATH=/gscmnt/gc2802/halllab/idas/software/xz-5.2.3/lib:${LD_LI
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
 
+function die {
+    local timestamp=$(date +"%Y-%m-%d %T")
+    echo "[ ${timestamp} ] ERROR: $@" >&2
+    kill -s TERM ${TOP_PID}
+}
+
 function log {
     local timestamp=$(date +"%Y-%m-%d %T")
     echo "---> [ ${timestamp} ] $@" >&2
@@ -28,8 +38,8 @@ function run_cmd {
     log "EXEC: ${cmd}"
     eval "${cmd}"
     if [[ $? -ne 0 ]]; then
-        log "[err] Problem running command: ${cmd} !"
-        exit 1
+        die "[err] Problem running command: ${cmd} !"
+        exit 1;
     fi
 }
 

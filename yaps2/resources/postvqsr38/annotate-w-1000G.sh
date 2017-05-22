@@ -15,6 +15,12 @@ BGZIP=/gscmnt/gc2802/halllab/idas/software/local/bin/bgzip
 TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
 BCFTOOLS=/gscmnt/gc2802/halllab/idas/software/local/bin/bcftools1.4
 
+function die {
+    local timestamp=$(date +"%Y-%m-%d %T")
+    echo "[ ${timestamp} ] ERROR: $@" >&2
+    kill -s TERM ${TOP_PID}
+}
+
 function log {
     local timestamp=$(date +"%Y-%m-%d %T")
     echo "---> [ ${timestamp} ] $@" >&2
@@ -25,8 +31,8 @@ function run_cmd {
     log "EXEC: ${cmd}"
     eval "${cmd}"
     if [[ $? -ne 0 ]]; then
-        log "[err] Problem running command: ${cmd} !"
-        kill -s TERM $TOP_PID
+        die "[err] Problem running command: ${cmd} !"
+        exit 1;
     fi
 }
 
