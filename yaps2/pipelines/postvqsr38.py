@@ -111,10 +111,10 @@ class Pipeline(object):
         bcftools_stats_tasks = self.create_bcftools_stats_tasks(annotate_gnomAD_tasks, 13)
         # 13.1 Merge & Plot bcftools stats
         bcftools_stats_summary_task = self.create_bcftools_stats_summary_task(bcftools_stats_tasks, 13.1)
-        # 14. GATK VariantEval
-        variant_eval_tasks = self.create_variant_eval_tasks(annotate_gnomAD_tasks, 14)
-        # 14.1. Merge & Plot GATK VariantEval Stats
-        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks, 14.1)
+#        # 14. GATK VariantEval
+#        variant_eval_tasks = self.create_variant_eval_tasks(annotate_gnomAD_tasks, 14)
+#        # 14.1. Merge & Plot GATK VariantEval Stats
+#        variant_eval_summary_task = self.create_variant_eval_summary_task(variant_eval_tasks, 14.1)
 
     def create_bcftools_stats_summary_task(self, parent_tasks, step_number):
         stage = self._construct_task_name('bcftools-stats-summary', step_number)
