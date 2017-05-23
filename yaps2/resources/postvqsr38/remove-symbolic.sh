@@ -2,8 +2,8 @@
 
 set -ueo pipefail
 
-BCFTOOLS=/gscmnt/gc2719/halllab/bin/bcftools
-TABIX=/gscmnt/gc2719/halllab/bin/tabix
+BCFTOOLS=/gscmnt/gc2802/halllab/idas/software/local/bin/bcftools1.4
+TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
 
 INVCF=$1
 OUTVCF=$2

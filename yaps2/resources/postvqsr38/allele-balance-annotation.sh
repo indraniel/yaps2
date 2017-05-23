@@ -1,8 +1,7 @@
 #!/bin/bash
 
-TABIX=/gsc/bin/tabix
-GZIP_CMD=/bin/gzip
-BGZIP=/gsc/bin/bgzip1.2.1
+BGZIP=/gscmnt/gc2802/halllab/idas/software/local/bin/bgzip
+TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
 
 PYTHON=$1
 SCRIPT=$2
