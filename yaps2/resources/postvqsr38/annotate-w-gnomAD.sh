@@ -289,6 +289,7 @@ function run_gnomAD_genome_annotation {
 
     # specially handle chromosome Y (there are no chr Y gnomAD annotations)
     if [[ "${chrom}" == "Y" ]]; then
+        log "gnomAD genome special chromosome Y handling"
         local cmd0="
         ${LN} -s ${invcf} ${outvcf} && ${LN} -s ${invcf}.tbi ${outvcf}.tbi
         "
