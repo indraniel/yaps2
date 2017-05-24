@@ -11,6 +11,7 @@ PICARD=/gscmnt/gc2802/halllab/idas/software/picard/picard.2.9.0.jar
 
 PYTHON=$(which python) # if run inside yaps2 pipeline, then should be getting the virtualenv python
 AWK=/usr/bin/awk
+LN=/bin/ln
 
 BGZIP=/gscmnt/gc2802/halllab/idas/software/local/bin/bgzip
 TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
@@ -285,6 +286,15 @@ function run_gnomAD_genome_annotation {
 
     local tmpvcf=${outvcf}.tmp
     local chrom=$(get_chrom ${region})
+
+    # specially handle chromosome Y (there are no chr Y gnomAD annotations)
+    if [[ "${chrom}" == "Y" ]]; then
+        local cmd0="
+        ${LN} -s ${invcf} ${outvcf} && ${LN} -s ${invcf}.tbi ${outvcf}.tbi
+        "
+        run_cmd "${cmd0}"
+        return 0
+    fi
 
     # the gnomAD annotation file
     local base=/gscmnt/gc2802/halllab/gnomAD/release-170228/processed/post-vqsr-pipeline/genome
