@@ -5,12 +5,13 @@ from cosmos.api import Cosmos, Dependency, default_get_submit_args
 from yaps2.utils import to_json, merge_params, natural_key, empty_gzipped_vcf
 
 class Config(object):
-    def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker):
+    def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker, queue):
         self.email = email
         self.db = job_db
         self.project_name = project_name
         self.rootdir = workspace
         self.docker = docker
+        self.drm_queue = queue
 
         self.ensure_rootdir()
 
@@ -126,7 +127,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 bcftools_stats_summary_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -197,7 +199,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 variant_eval_summary_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -224,7 +227,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 bcftools_stats_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -255,7 +259,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 gatk_variant_eval_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -424,7 +429,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 annotation_gnomAD_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -457,7 +463,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 annotation_1000G_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -524,7 +531,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 filter_variant_missingness_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -557,8 +565,9 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 remove_symbolic_deletion_alleles_lsf_params,
                 self.config.email,
-                self.config.docker
-                )
+                self.config.docker,
+                self.config.drm_queue
+        )
         lsf_params_json = to_json(lsf_params)
 
         for ptask in parent_tasks:
@@ -590,7 +599,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 normalize_decompose_unique_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -624,7 +634,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 calculate_sample_missingness_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -652,7 +663,8 @@ class Pipeline(object):
         lsf_params = get_lsf_params(
                 count_sample_missingness_lsf_params,
                 self.config.email,
-                self.config.docker
+                self.config.docker,
+                self.config.drm_queue
         )
         lsf_params_json = to_json(lsf_params)
 

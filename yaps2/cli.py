@@ -57,6 +57,8 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, queue, res
               help='An email used to notify about batch jobs [default=userid@genome.wustl.edu]')
 @click.option('--drm', default='lsf', type=click.Choice(['local', 'lsf']),
               help='Job Mode -- [default=lsf]')
+@click.option('--queue', default='long', type=click.STRING,
+              help='The LSF queue to submit jobs into [default=long]')
 @click.option('--restart/--no-restart', default=False,
               help='Restart Pipeline from scratch')
 @click.option('--docker/--no-docker', default=False,
@@ -65,9 +67,9 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, queue, res
               help='Do not prompt when resuming or restarting a pipeline [default=False]')
 @click.option('--task-flush', default=False, is_flag=True,
               help='Update the task database table as soon as a job is submitted [default=False]')
-def postvqsr38(job_db, input_vcfs, project_name, email, workspace, drm, restart, docker, skip_confirm, task_flush):
+def postvqsr38(job_db, input_vcfs, project_name, email, workspace, drm, queue, restart, docker, skip_confirm, task_flush):
     from yaps2.pipelines.postvqsr38 import Config, Pipeline
-    config = Config(job_db, input_vcfs, project_name, email, workspace, docker)
+    config = Config(job_db, input_vcfs, project_name, email, workspace, docker, queue)
     workflow = Pipeline(config, drm, restart, skip_confirm)
     workflow.run(task_flush)
 
