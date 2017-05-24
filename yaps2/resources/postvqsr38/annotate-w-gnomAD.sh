@@ -10,6 +10,7 @@ JAVA=/gapp/x64linux/opt/java/jdk/jdk1.8.0_60/bin/java
 PICARD=/gscmnt/gc2802/halllab/idas/software/picard/picard.2.9.0.jar
 
 PYTHON=$(which python) # if run inside yaps2 pipeline, then should be getting the virtualenv python
+AWK=/usr/bin/awk
 
 BGZIP=/gscmnt/gc2802/halllab/idas/software/local/bin/bgzip
 TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
@@ -99,8 +100,8 @@ function get_chrom {
     local chrom=
 
     if echo "${region}" | grep -q ':'; then
-        chrom=$(echo ${region} | awk -F':' '{ print $1 }' | sed 's/chr//g')
-        #interval=$(echo ${region} | awk -F':' '{ print $2 }')
+        chrom=$(echo ${region} | ${AWK} -F':' '{ print $1 }' | sed 's/chr//g')
+        #interval=$(echo ${region} | ${AWK} -F':' '{ print $2 }')
     else
         chrom=${region}
     fi
