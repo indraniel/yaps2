@@ -22,7 +22,7 @@ setup(
     url='https://github.com/indraniel/yaps2',
     dependency_links=[
         'https://github.com/indraniel/COSMOS2/tarball/enable-lsf-rebase#egg=cosmos-wfm-2.0.10.indraniel4',
-        'https://github.com/brentp/cyvcf2/tarball/d04777ab87fd10193d6b7ab4fe27d0e859aa8a84#egg=cyvcf2-0.7.5',
+        'https://github.com/indraniel/cyvcf2/tarball/option-missingness#egg=cyvcf2-0.7.5',
     ],
     install_requires=[
         'cosmos-wfm==2.0.10.indraniel4',
