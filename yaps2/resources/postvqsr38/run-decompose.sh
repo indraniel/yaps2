@@ -5,7 +5,7 @@
 
 BIO_1662=/gscmnt/gc2802/halllab/idas/jira/BIO-1662
 VT=${BIO_1662}/vendor/local/bin/vt-0.5
-TABIX=/gscmnt/gc2802/halllab/idas/software/vep/local/htslib-1.3.2/bin/tabix
+TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
 
 INVCF=$1
 OUTVCF=$2
