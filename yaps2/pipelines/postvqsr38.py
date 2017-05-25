@@ -76,8 +76,8 @@ class Pipeline(object):
         self.workflow.make_output_dirs()
 
     def run(self, task_flush):
-	# put set_successful to False if you intend to add more tasks to the
-	# pipeline later
+        # put set_successful to False if you intend to add more tasks to the
+        # pipeline later
         custom_log_dir = lambda task : os.path.join(self.config.rootdir, 'logs', task.stage.name, task.uid)
         self.workflow.run(set_successful=False, log_out_dir_func=custom_log_dir, db_task_flush=task_flush)
 
