@@ -848,11 +848,13 @@ def annotation_LINSIGHT(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
         'main_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/annotate-w-LINSIGHT.sh'),
+        'b37_to_b38_integration_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/integrate-b37-annotations-to-b38.py'),
     }
     cmd_args = merge_params(default, args)
     cmd = ("{main_script} "
            "{in_vcf} "
            "{out_vcf} "
+           "{b37_to_b38_integration_script} "
            ">{out_log} 2>&1" ).format(**cmd_args)
     return cmd
 
