@@ -2,7 +2,7 @@ import os, pwd, sys
 import pkg_resources
 from itertools import groupby
 from cosmos.api import Cosmos, Dependency, default_get_submit_args
-from yaps2.utils import to_json, merge_params, natural_key, empty_gzipped_vcf
+from yaps2.utils import to_json, merge_params, natural_key, empty_gzipped_vcf, get_chrom_number, Region
 
 class Config(object):
     def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker, queue):
@@ -671,7 +671,8 @@ class Pipeline(object):
         for chrom in self.config.chroms:
 
             # only count missing genotypes on chromosomes 1-22 (not X, Y, or MT)
-            if not chrom[0].isdigit() : continue
+            chrom_number = get_chrom_number(chrom)
+            if not chrom_number.isdigit() : continue
 
             output_json = '{chrom}-sample-missingness-counts.json'.format(chrom=chrom)
             output_log = '{}-sample-missingness-counts.log'.format(chrom)

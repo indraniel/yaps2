@@ -25,6 +25,21 @@ def empty_gzipped_vcf(path):
                 return False
     return True
 
+def get_chrom_number(region):
+    fmt_chrom = ''
+    if ':' in region:
+        fmt_chrom = region.split(':')[0]
+    else:
+        fmt_chrom = region
+
+    chrom = ''
+    if 'chr' in fmt_chrom:
+        chrom = fmt_chrom.lstrip('chr')
+    else:
+        chrom = fmt_chrom
+
+    return chrom
+
 class Region(object):
     def __init__(self, reference_index, string):
         self._load_chromosomes(reference_index)
