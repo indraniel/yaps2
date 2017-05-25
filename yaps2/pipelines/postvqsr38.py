@@ -979,8 +979,8 @@ def annotation_1000G_lsf_params(email, queue):
 def annotate_allele_balances(in_vcf, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
-        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/allele-balance-annotation.sh'),
-        'python_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr/annotate-allele-balances.py'),
+        'script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/allele-balance-annotation.sh'),
+        'python_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/annotate-allele-balances.py'),
         'python_executable' : sys.executable,
     }
     cmd_args = merge_params(default, args)
