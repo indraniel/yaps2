@@ -808,7 +808,7 @@ def gatk_variant_eval(in_chrom, in_vcf, out_stats, out_log):
         'java' : '/gapp/x64linux/opt/java/jre/jre1.8.0_31/bin/java',
         'jar'  : '/gscmnt/gc2802/halllab/idas/jira/BIO-1662/vendor/local/jars/GenomeAnalysisTK-3.5-idas-experimental-293f64d-2016.02.19.jar',
         'java_opts' : "-Xmx4096m",
-        'reference' : '/gscmnt/gc2719/halllab/genomes/human/GRCh37/1kg_phase1/human_g1k_v37.fasta',
+        'reference' : '/gscmnt/gc2802/halllab/ccdg_resources/genomes/human/GRCh38DH/all_sequences.fa',
         'dbsnp': '/gscmnt/gc2802/halllab/idas/jira/BIO-1662/data/derived/FinnMetSeq-WGS/10-decompose-normalize-1000G-variant-ref-v1/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.decompose.normalize.vcf.gz',
     }
 
