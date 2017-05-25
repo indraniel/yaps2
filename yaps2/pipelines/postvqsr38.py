@@ -762,7 +762,7 @@ def concatenate_vcfs(in_vcfs, in_chrom, out_vcf, out_log):
     cmd = None
     if len(cmd_args['in_vcfs']) == 1:
         cmd_args['in_vcfs'] = cmd_args['in_vcfs'][0]
-        cmd = ( "cp -v {in_vcfs} {out_vcf}"
+        cmd = ( "cp -v {in_vcfs} {out_vcf} "
                 ">{out_log} "
                 "2>&1").format(**cmd_args)
     else:
