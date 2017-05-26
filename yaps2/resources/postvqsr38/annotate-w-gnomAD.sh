@@ -12,6 +12,8 @@ PICARD=/gscmnt/gc2802/halllab/idas/software/picard/picard.2.9.0.jar
 PYTHON=$(which python) # if run inside yaps2 pipeline, then should be getting the virtualenv python
 AWK=/usr/bin/awk
 LN=/bin/ln
+SORT=/gscmnt/gc2802/halllab/idas/software/local/bin/lh3-sort
+UNIQ=/usr/bin/uniq
 
 BGZIP=/gscmnt/gc2802/halllab/idas/software/local/bin/bgzip
 TABIX=/gscmnt/gc2802/halllab/idas/software/local/bin/tabix
@@ -208,24 +210,12 @@ function run_gnomAD_exome_annotation {
     local region=$1
     local invcf=$2
     local outdir=$(dirname ${invcf})
-    local outvcf=${outdir}/b37-gnomAD-exome-annotation.vcf.gz
+    local outvcf=${outdir}/b37-gnomAD-exome-annotation-final.vcf.gz
 
     if [[ -e "${outvcf}" ]]; then
         log "shortcutting run_gnomAD_exome_annotation"
         echo ${outvcf}
         return 0;
-    fi
-
-    local tmpvcf=${outvcf}.tmp
-    local chrom=$(get_chrom ${region})
-
-    # the gnomAD annotation file
-    local base=/gscmnt/gc2802/halllab/gnomAD/release-170228/processed/post-vqsr-pipeline/exome
-    local anno_vcf=${base}/${chrom}/
-    anno_vcf+=c${chrom}.gnomad.exomes.r2.0.1.sites.decompose.normalized.uniq.namespaced.vcf.gz
-
-    if [[ ! -e ${anno_vcf} ]]; then
-        die "Did not find annotation vcf: '${anno_vcf}'"
     fi
 
     # annotation columns of interest
@@ -258,16 +248,51 @@ function run_gnomAD_exome_annotation {
     )
     local annotations=$(join_by , "${anno_cols[@]}")
 
-    local cmd1="
-    ${BCFTOOLS} annotate \
-        -a ${anno_vcf} \
-        -c ${annotations} \
-        -O z \
-        -o ${tmpvcf} \
-        ${invcf} \
-    "
-    run_cmd "${cmd1}"
-	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
+    # the gnomAD exome annotation vcfs base location
+    local base=/gscmnt/gc2802/halllab/gnomAD/release-170228/processed/post-vqsr-pipeline/exome
+
+    # Figure out which gnomAD chromosomes vcfs are needed
+    local -a gnomAD_chroms=($(${TABIX} --list-chroms ${invcf} | ${SORT} -N | ${UNIQ}))
+    log "[exome] gnomAD chromosomal vcfs to process: ${gnomAD_chroms[@]} ( items: ${#gnomAD_chroms[@]} )"
+
+    local enter_vcf=${invcf}
+    local exit_vcf=
+
+    for chr in ${gnomAD_chroms[@]}; do
+        log "Annotating with gnomAD exome chromosome: ${chr}"
+        exit_vcf=${outdir}/b37-gnomAD-exome-annotation-c${chr}.vcf.gz
+
+        # determine the annotation vcf
+        local anno_vcf=${base}/${chr}/
+        anno_vcf+=c${chr}.gnomad.exomes.r2.0.1.sites.decompose.normalized.uniq.namespaced.vcf.gz
+
+#        log "enter_vcf : ${enter_vcf}"
+#        log "exit_vcf : ${exit_vcf}"
+
+        if [[ ! -e ${anno_vcf} ]]; then
+            die "Did not find annotation vcf: '${anno_vcf}'"
+        fi
+
+        # perform the chromosomal annotation
+        local tmpvcf=${exit_vcf}.tmp
+        local cmd1="
+        ${BCFTOOLS} annotate \
+            -a ${anno_vcf} \
+            -c ${annotations} \
+            -O z \
+            -o ${tmpvcf} \
+            ${enter_vcf} \
+        "
+        run_cmd "${cmd1}"
+        tabix_and_finalize_vcf ${tmpvcf} ${exit_vcf}
+
+        # setup for the next iteration
+        enter_vcf=${exit_vcf}
+    done
+
+    log "final exome exit_vcf is: ${exit_vcf}"
+    local cmd2="mv ${exit_vcf}.tbi ${outvcf}.tbi && mv ${exit_vcf} ${outvcf}"
+    run_cmd "${cmd2}"
 
     echo ${outvcf}
 }
@@ -276,34 +301,12 @@ function run_gnomAD_genome_annotation {
     local region=$1
     local invcf=$2
     local outdir=$(dirname ${invcf})
-    local outvcf=${outdir}/b37-gnomAD-genome-exome-annotation.vcf.gz
+    local outvcf=${outdir}/b37-gnomAD-genome-exome-annotation-final.vcf.gz
 
     if [[ -e "${outvcf}" ]]; then
         log "shortcutting run_gnomAD_genome_annotation"
         echo ${outvcf}
         return 0;
-    fi
-
-    local tmpvcf=${outvcf}.tmp
-    local chrom=$(get_chrom ${region})
-
-    # specially handle chromosome Y (there are no chr Y gnomAD annotations)
-    if [[ "${chrom}" == "Y" ]]; then
-        log "gnomAD genome special chromosome Y handling"
-        local cmd0="
-        ${LN} -s ${invcf} ${outvcf} && ${LN} -s ${invcf}.tbi ${outvcf}.tbi
-        "
-        run_cmd "${cmd0}"
-        return 0
-    fi
-
-    # the gnomAD annotation file
-    local base=/gscmnt/gc2802/halllab/gnomAD/release-170228/processed/post-vqsr-pipeline/genome
-    local anno_vcf=${base}/${chrom}/
-    anno_vcf+=c${chrom}.gnomad.genomes.r2.0.1.sites.decompose.normalized.uniq.namespaced.vcf.gz
-
-    if [[ ! -e ${anno_vcf} ]]; then
-        die "Did not find annotation vcf: '${anno_vcf}'"
     fi
 
     # annotation columns of interest
@@ -334,16 +337,61 @@ function run_gnomAD_genome_annotation {
     )
     local annotations=$(join_by , "${anno_cols[@]}")
 
-    local cmd1="
-    ${BCFTOOLS} annotate \
-        -a ${anno_vcf} \
-        -c ${annotations} \
-        -O z \
-        -o ${tmpvcf} \
-        ${invcf} \
-    "
-    run_cmd "${cmd1}"
-	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
+    # the gnomAD genome annotation vcfs base location
+    local base=/gscmnt/gc2802/halllab/gnomAD/release-170228/processed/post-vqsr-pipeline/genome
+
+    # Figure out which gnomAD chromosomes vcfs are needed
+    local -a gnomAD_chroms=($(${TABIX} --list-chroms ${invcf} | ${SORT} -N | ${UNIQ}))
+    log "[genome] gnomAD chromosomal vcfs to process: ${gnomAD_chroms[@]} ( items: ${#gnomAD_chroms[@]} )"
+
+    local enter_vcf=${invcf}
+    local exit_vcf=
+
+    for chr in ${gnomAD_chroms[@]}; do
+        log "Annotating with gnomAD genome chromosome: ${chr}"
+        exit_vcf=${outdir}/b37-gnomAD-genome-annotation-c${chr}.vcf.gz
+
+#        log "enter_vcf : ${enter_vcf}"
+#        log "exit_vcf : ${exit_vcf}"
+
+        # perform the chromosomal annotation
+
+        if [[ "${chr}" == "Y" ]]; then
+            # specially handle chromosome Y (there are no chr Y gnomAD annotations)
+            log "gnomAD genome special chromosome Y handling"
+            local cmd0="
+            ${LN} -s ${enter_vcf} ${exit_vcf} && ${LN} -s ${enter_vcf}.tbi ${exit_vcf}.tbi
+            "
+            run_cmd "${cmd0}"
+        else
+            # determine the annotation vcf
+            local anno_vcf=${base}/${chr}/
+            anno_vcf+=c${chr}.gnomad.genomes.r2.0.1.sites.decompose.normalized.uniq.namespaced.vcf.gz
+
+            if [[ ! -e ${anno_vcf} ]]; then
+                die "Did not find annotation vcf: '${anno_vcf}'"
+            fi
+
+            local tmpvcf=${exit_vcf}.tmp
+            local cmd1="
+            ${BCFTOOLS} annotate \
+                -a ${anno_vcf} \
+                -c ${annotations} \
+                -O z \
+                -o ${tmpvcf} \
+                ${enter_vcf} \
+            "
+            run_cmd "${cmd1}"
+            tabix_and_finalize_vcf ${tmpvcf} ${exit_vcf}
+        fi
+
+        # setup for the next iteration
+        enter_vcf=${exit_vcf}
+    done
+
+    log "final genome exit_vcf is: ${exit_vcf}"
+    local cmd2="mv ${exit_vcf}.tbi ${outvcf}.tbi && mv ${exit_vcf} ${outvcf}"
+    run_cmd "${cmd2}"
 
     echo ${outvcf}
 }
