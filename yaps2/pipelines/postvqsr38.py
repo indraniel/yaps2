@@ -884,8 +884,8 @@ def annotation_LCR_lsf_params(email, queue):
         'u' : email,
         'N' : None,
         'q' : queue,
-        'M' : 8000000,
-        'R' : 'select[mem>8000 && ncpus>8] rusage[mem=8000]',
+        'M' : 16000000,
+        'R' : 'select[mem>16000 && ncpus>8] rusage[mem=16000]',
     }
 
 def annotation_cadd(in_vcf, in_chrom, out_vcf, out_log):
