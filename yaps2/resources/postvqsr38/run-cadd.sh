@@ -132,7 +132,7 @@ function run_liftover_hg19 {
 
     local cmd1="
     ${JAVA} \
-        -Xmx8g \
+        -Xmx16g \
         -jar ${PICARD} \
         LiftoverVcf \
         I=${invcf} \
@@ -167,7 +167,7 @@ function run_liftover_grc37 {
 
     local cmd1="
     ${JAVA} \
-        -Xmx8g \
+        -Xmx16g \
         -jar ${PICARD} \
         LiftoverVcf \
         I=${invcf} \
