@@ -252,7 +252,7 @@ function run_gnomAD_exome_annotation {
     local base=/gscmnt/gc2802/halllab/gnomAD/release-170228/processed/post-vqsr-pipeline/exome
 
     # Figure out which gnomAD chromosomes vcfs are needed
-    local -a gnomAD_chroms=($(${TABIX} --list-chroms ${invcf} | ${SORT} -N | ${UNIQ}))
+    local -a gnomAD_chroms=($(${TABIX} --list-chroms ${invcf} | ${SORT} -N | ${UNIQ} | grep -v -P '^(GL|MT)'))
     log "[exome] gnomAD chromosomal vcfs to process: ${gnomAD_chroms[@]} ( items: ${#gnomAD_chroms[@]} )"
 
     local enter_vcf=${invcf}
@@ -341,7 +341,7 @@ function run_gnomAD_genome_annotation {
     local base=/gscmnt/gc2802/halllab/gnomAD/release-170228/processed/post-vqsr-pipeline/genome
 
     # Figure out which gnomAD chromosomes vcfs are needed
-    local -a gnomAD_chroms=($(${TABIX} --list-chroms ${invcf} | ${SORT} -N | ${UNIQ}))
+    local -a gnomAD_chroms=($(${TABIX} --list-chroms ${invcf} | ${SORT} -N | ${UNIQ} | grep -v -P '^(GL|MT)'))
     log "[genome] gnomAD chromosomal vcfs to process: ${gnomAD_chroms[@]} ( items: ${#gnomAD_chroms[@]} )"
 
     local enter_vcf=${invcf}
