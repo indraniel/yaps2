@@ -291,15 +291,9 @@ function paste_cadd {
 
     local tmpvcf=${outvcf}.tmp
 
-    # core of "paste_cadd.sh" -- newer approach (assume no samples on the vcf)
+    # core of older "paste_cadd.sh" -- newer approach (assume no samples on the vcf)
     local cmd1="
-    cat <(python2.7 ${merge_cadd_script} -H <(zcat ${invcf}) <(zcat ${caddtsv})) \
-        <(python2.7 ${merge_cadd_script} --no-header \
-                    <(cat <(zcat ${invcf} | grep \"^#\") \
-                          <(zcat ${invcf} \
-                              | grep -v \"^#\" \
-                              | sort -k1,1 -k2,2n -k4,4 -k5,5)) \
-                    <(zcat ${caddtsv})) \
+    python2.7 ${merge_script} --in-vcf=${invcf} --cadd-tsv=${caddtsv} \
     | ${BGZIP} -c \
     > ${tmpvcf}
     "
