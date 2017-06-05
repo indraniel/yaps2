@@ -76,7 +76,24 @@ def update_variant(variant, cadd_annotations):
         raw_cadd_score = '.'
 
     update_annotations(variant, cadd_score, raw_cadd_score)
-    return variant
+    return variant, key
+
+def ensure_cadd_completed_successfully(in_vcf_file, cadd_tsv_file, vcf_set, cadd_set):
+    # In theory, with AC=0, symbolic deletions, and the unplaced contigs all removed,
+    # the number of (chrom, pos, ref, alt) combinations should be the in the input vcf
+    # and output CADD tsv file
+    num_in_vcf_variants = len(vcf_set)
+    num_in_cadd_tsv_variants = len(cadd_set)
+    if num_in_vcf_variants != num_in_cadd_tsv_variants:
+        diff = vcf_set.symmetric_difference(cadd_set)
+        msg = ("Found {} unaccounted for variants.\n"
+               "Input CADD VCF: '{}'\n"
+               "Output CADD TSV: '{}'\n"
+               "Troublesome variants (chrom, pos, ref, alt):\n"
+               "{}")
+        msg.format(len(diff), in_vcf_file, cadd_tsv_file, diff)
+        raise RuntimeError(msg)
+
 
 def merge(in_vcf, cadd_tsv):
     new_headers = annotation_info_headers()
@@ -84,7 +101,7 @@ def merge(in_vcf, cadd_tsv):
     log("Collecting the CADD annotation information")
     cadd_annotations = create_CADD_annotation_dictionary(cadd_tsv)
 
-    log("Processing the build38 vcf")
+    log("Processing the build37 vcf")
     vcf = VCF(in_vcf)
 
     for info_hdr in new_headers:
@@ -92,11 +109,17 @@ def merge(in_vcf, cadd_tsv):
 
     out = Writer('-', vcf)
 
+    in_vcf_variants = set()
     for variant in vcf:
-        variant = update_variant(variant, cadd_annotations)
+        (variant, key) = update_variant(variant, cadd_annotations)
+        in_vcf_variants.add(key)
         out.write_record(variant)
 
     out.close()
+
+    log("Checking whether CADD completed correctly")
+    ensure_cadd_completed_successfully(in_vcf, cadd_tsv, in_vcf_variants, frozenset(list(cadd_annotations.keys())) )
+
     log("All Done!")
 
 @click.command()
