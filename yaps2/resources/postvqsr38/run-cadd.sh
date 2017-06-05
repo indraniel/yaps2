@@ -183,6 +183,40 @@ function run_liftover_grc37 {
     echo ${outvcf}
 }
 
+#function vcf_remove_unplaced_variants {
+#    local vcf=$1
+#
+#    log "(vcf_remove_unplaced_variants) calling bcftools subprocess"
+#    local cmd="
+#    cat <(${BCFTOOLS} view -h ${vcf}) \
+#        <(${BCFTOOLS} view -H ${vcf} | grep -v '^GL')
+#    "
+#    run_cmd "${cmd}"
+#}
+
+function remove_grc37_unplaced_contigs {
+    local invcf=$1
+    local outdir=$(dirname ${invcf})
+    local outvcf=${outdir}/grc37.minus.unplaced.vcf.gz
+
+    if [[ -e "${outvcf}" ]]; then
+        log "shortcutting remove_grc37_unplaced_contigs"
+        echo ${outvcf}
+        return 0;
+    fi
+
+    local tmpvcf=${outvcf}.tmp
+
+    local cmd1="
+    cat <(${BCFTOOLS} view -h ${invcf}) \
+        <(${BCFTOOLS} view -H ${invcf} | grep -v '^GL') \
+	| ${BGZIP} -c > ${tmpvcf}
+    "
+    run_cmd "${cmd1}"
+	tabix_and_finalize_vcf ${tmpvcf} ${outvcf}
+    echo ${outvcf}
+}
+
 function run_cadd {
     local invcf=$1
     local outdir=$(dirname ${invcf})
@@ -311,6 +345,8 @@ function annotate_vcf {
     local hg19_vcf=$(run_liftover_hg19 ${b38_invcf_no_samples})
     log "Entering liftOver GRCh37"
     local grc37_vcf=$(run_liftover_grc37 ${hg19_vcf})
+    log "Entering remove unplaced GRCh37 contigs"
+    local grc37_vcf_minus_unplaced_contigs=$(remove_grc37_unplaced_contigs ${grc37_vcf})
     log "Entering run_cadd"
     local tsv=$(run_cadd ${grc37_vcf})
     log "Entering paste_cadd"
