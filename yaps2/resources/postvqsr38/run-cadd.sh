@@ -245,6 +245,36 @@ function run_cadd {
     echo ${tsv}
 }
 
+function verify_cadd {
+    local $grc37_vcf=$1
+    local $tsv=$2
+
+    local grc37_count=0
+    local tsv_count=0
+
+    if [[ -e ${grc37_vcf} ]]; then
+        grc37_count=$(${BCFTOOLS} view -H ${grc37_vcf} | wc -l);
+    else
+        die "[err] Did not find the build 37 input vcf file to CADD: '${grc37_vcf}'"
+    fi
+
+    if [[ -e ${tsv} ]]; then
+        tsv_count=$(zcat ${tsv} | tail -n +3 | wc -l);
+    else
+        die "[err] Did not find the TSV output file from CADD: '${tsv}'"
+    fi
+
+    log "grc37_count    (grc37.minus.unplaced.vcf.gz) : ${grc37_count}";
+    log "cadd_tsv_count (cadd-annotation.tsv.gz)      : ${tsv_count}";
+
+    difference=$(( ${grc37_count} - ${tsv_count} ));
+    log "variant difference                           : ${tsv_count}";
+
+    if [[ ${difference} -ge 10 ]]; then
+        die "[err] Running CADD was CORRUPTED -- ${difference} input-to-output variant difference";
+    fi
+}
+
 function paste_cadd {
     local merge_cadd_script=$1
     local invcf=$2
@@ -348,7 +378,9 @@ function annotate_vcf {
     log "Entering remove unplaced GRCh37 contigs"
     local grc37_vcf_minus_unplaced_contigs=$(remove_grc37_unplaced_contigs ${grc37_vcf})
     log "Entering run_cadd"
-    local tsv=$(run_cadd ${grc37_vcf})
+    local tsv=$(run_cadd ${grc37_vcf_minus_unplaced_contigs})
+    log "Entering verify_cadd"
+    verify_cadd ${grc37_vcf_minus_unplaced_contigs} ${tsv}
     log "Entering paste_cadd"
     local b37_cadd_vcf=$(paste_cadd ${merge_script} ${grc37_vcf} ${tsv})
     log "Entering integrate b37 cadd annotations back to b38"
