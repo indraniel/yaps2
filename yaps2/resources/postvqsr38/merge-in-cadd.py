@@ -1,62 +1,141 @@
 #!/usr/bin/env python
 
-import argparse
-import sys
+from __future__ import print_function, division
+import sys, os, datetime, gzip
 
-def merge(vcf, cadd, header_only, print_header):
-    for cadd_line in cadd:
-        if cadd_line.startswith('#'):
-            continue
-        cadd_fields = cadd_line.rstrip().split('\t')
+if 'VIRTUAL_ENV' in os.environ:
+    print('found a virtualenv -- activating: {}'.format(os.environ['VIRTUAL_ENV']), file=sys.stderr)
+    activation_script = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'activate_this.py')
+    execfile(activation_script, dict(__file__=activation_script))
 
-        for vcf_line in vcf:
-            if vcf_line.startswith('##'):
-                if header_only or print_header:
-                    sys.stdout.write(vcf_line)
+import click
+from cyvcf2 import VCF, Writer
+
+def log(msg):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %T")
+    print('[-- {} --] {}'.format(timestamp, msg), file=sys.stderr)
+
+def is_float(s):
+    return True if isinstance(s, float) else False
+
+def annotation_info_headers():
+    headers = [
+        {
+            'ID' : 'CADD',
+            'Number' : 'A',
+            'Type' : 'Float',
+            'Description' : 'CADD score',
+        },
+        {
+            'ID' : 'CADD_RAW',
+            'Number' : 'A',
+            'Type' : 'Float',
+            'Description' : 'Raw CADD score',
+        }
+    ]
+    return headers
+
+def create_CADD_annotation_dictionary(tsv):
+    data = {}
+
+    with gzip.GzipFile(tsv, 'rb') as f:
+        for line in f:
+            if line.startswith('#'):
                 continue
-            elif vcf_line.startswith('#'):
-                if header_only or print_header:
-                    sys.stdout.write('##INFO=<ID=CADD,Number=A,Type=Float,Description="CADD score">\n')
-                    sys.stdout.write('##INFO=<ID=CADD_RAW,Number=A,Type=Float,Description="Raw CADD score">\n')
-                # We will always output the actual header line so we can paste in the samples
-                if header_only:
-                    sys.exit(0)
-                sys.stdout.write(vcf_line)
-            else:
-                vcf_fields = vcf_line.rstrip().split('\t', 8)
-                if (vcf_fields[4].startswith('<') and vcf_fields[4].endswith('>')) or vcf_fields[4]=='*':
-                    vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD=.', 'CADD_RAW=.'])
-                    sys.stdout.write('\t'.join(vcf_fields))
-                    sys.stdout.write('\n')
-                elif (vcf_fields[0] == cadd_fields[0]
-                        and vcf_fields[1] == cadd_fields[1]
-                        and vcf_fields[3] == cadd_fields[2]
-                        and vcf_fields[4] == cadd_fields[3]):
-                    vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD={0}'.format(cadd_fields[5]), 'CADD_RAW={0}'.format(cadd_fields[4])])
-                    sys.stdout.write('\t'.join(vcf_fields))
-                    sys.stdout.write('\n')
-                    break
-                else:
-                    sys.stderr.write('HORRIBLE THINGS HAVE HAPPENED!!\n')
-                    sys.exit(1)
-    for vcf_line in vcf:
-        vcf_fields = vcf_line.rstrip().split('\t', 8)
-        if (vcf_fields[4].startswith('<') and vcf_fields[4].endswith('>')) or vcf_fields[4]=='*':
-            vcf_fields[7] = ';'.join([vcf_fields[7], 'CADD=.', 'CADD_RAW=.'])
-            sys.stdout.write('\t'.join(vcf_fields))
-            sys.stdout.write('\n')
-        else:
-            sys.stderr.write('HORRIBLE THINGS HAVE HAPPENED!!\n')
-            sys.exit(1)
+            (chrom, pos, ref, alt, raw_score, phred_score) = line.rstrip().split("\t")
+            chrom = unicode(chrom)
+            pos = unicode(pos)
+            ref = unicode(ref)
+            alt = unicode(alt)
+            key = (chrom, pos, ref, alt)
+            data[key] = { 'CADD' : phred_score, 'CADD_RAW' : raw_score }
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(dest='vcf_file', nargs='?', help='VCF')
-    parser.add_argument(dest='cadd_file', nargs='?', help='CADD')
-    parser.add_argument('-H','--header-only', action='store_true', default=False, dest='header_only', help='print new header and exit')
-    parser.add_argument('--no-header', action='store_false', default=True, dest='print_header', help="don't print the header")
+    return data
 
-    args = parser.parse_args()
+def update_annotations(variant, cadd_score, raw_cadd_score):
+    cadd_score_fmt = '{:.3f}' if is_float(cadd_score) else '{}'
+    raw_cadd_score_fmt = '{:.6f}' if is_float(raw_cadd_score) else '{}'
 
-    with open(args.vcf_file) as vcf, open(args.cadd_file) as cadd:
-        merge(vcf, cadd, args.header_only, args.print_header)
+    variant.INFO['CADD'] = cadd_score_fmt.format(cadd_score)
+    variant.INFO['CADD_RAW'] = raw_cadd_score_fmt.format(raw_cadd_score)
+
+    return variant
+
+def update_variant(variant, cadd_annotations):
+    chrom = unicode(variant.CHROM)
+    pos = unicode(variant.POS)
+    ref = unicode(variant.REF)
+    alt = unicode(','.join(variant.ALT))
+
+    key = (chrom, pos, ref, alt)
+    if key in cadd_annotations:
+        cadd_score = cadd_annotations[key]['CADD']
+        raw_cadd_score = cadd_annotations[key]['CADD_RAW']
+    else:
+        cadd_score = '.'
+        raw_cadd_score = '.'
+
+    update_annotations(variant, cadd_score, raw_cadd_score)
+    return variant, key
+
+def ensure_cadd_completed_successfully(in_vcf_file, cadd_tsv_file, vcf_set, cadd_set):
+    # In theory, with AC=0, symbolic deletions, and the unplaced contigs all removed,
+    # the number of (chrom, pos, ref, alt) combinations should be the in the input vcf
+    # and output CADD tsv file
+    num_in_vcf_variants = len(vcf_set)
+    num_in_cadd_tsv_variants = len(cadd_set)
+    if num_in_vcf_variants != num_in_cadd_tsv_variants:
+        diff = vcf_set.symmetric_difference(cadd_set)
+        msg = ("[err] Found {} variants that are "
+               "not common between CADD's input and outputs")
+        log( msg.format(len(diff)) )
+        log( "Input CADD VCF  : '{}'".format(in_vcf_file) )
+        log( "Output CADD TSV : '{}'".format(cadd_tsv_file) )
+        log( "The troublesome variants are:" )
+
+        detail = '    CHROM: {} | POS: {} | REF: {} | ALT: {}'
+        for variant in diff:
+            (chrom, pos, ref, alt) = variant
+            print(detail.format(chrom, pos, ref, alt), file=sys.stderr)
+
+        raise RuntimeError( msg.format(len(diff)) )
+
+    log("Successfully passed check")
+
+def merge(in_vcf, cadd_tsv):
+    new_headers = annotation_info_headers()
+
+    log("Collecting the CADD annotation information")
+    cadd_annotations = create_CADD_annotation_dictionary(cadd_tsv)
+
+    log("Processing the build37 vcf")
+    vcf = VCF(in_vcf)
+
+    for info_hdr in new_headers:
+        vcf.add_info_to_header(info_hdr)
+
+    out = Writer('-', vcf)
+
+    in_vcf_variants = set()
+    for variant in vcf:
+        (variant, key) = update_variant(variant, cadd_annotations)
+        in_vcf_variants.add(key)
+        out.write_record(variant)
+
+    out.close()
+
+    log("Checking whether CADD completed correctly")
+    ensure_cadd_completed_successfully(in_vcf, cadd_tsv, in_vcf_variants, frozenset(list(cadd_annotations.keys())) )
+
+    log("All Done!")
+
+@click.command()
+@click.option('--in-vcf', required=True, type=click.Path(exists=True),
+        help="the original input vcf to integrate annotations into")
+@click.option('--cadd-tsv', required=True, type=click.Path(exists=True),
+        help="the gzipped tsv file produced by CADD's score.sh")
+def main(in_vcf, cadd_tsv):
+    merge(in_vcf, cadd_tsv)
+
+if __name__ == "__main__":
+    main()
