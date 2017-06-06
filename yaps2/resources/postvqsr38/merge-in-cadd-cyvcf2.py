@@ -86,14 +86,21 @@ def ensure_cadd_completed_successfully(in_vcf_file, cadd_tsv_file, vcf_set, cadd
     num_in_cadd_tsv_variants = len(cadd_set)
     if num_in_vcf_variants != num_in_cadd_tsv_variants:
         diff = vcf_set.symmetric_difference(cadd_set)
-        msg = ("Found {} unaccounted for variants.\n"
-               "Input CADD VCF: '{}'\n"
-               "Output CADD TSV: '{}'\n"
-               "Troublesome variants (chrom, pos, ref, alt):\n"
-               "{}")
-        msg.format(len(diff), in_vcf_file, cadd_tsv_file, diff)
-        raise RuntimeError(msg)
+        msg = ("[err] Found {} variants that are "
+               "not common between CADD's input and outputs")
+        log( msg.format(len(diff)) )
+        log( "Input CADD VCF  : '{}'".format(in_vcf_file) )
+        log( "Output CADD TSV : '{}'".format(cadd_tsv_file) )
+        log( "The troublesome variants are:" )
 
+        detail = '    CHROM: {} | POS: {} | REF: {} | ALT: {}'
+        for variant in diff:
+            (chrom, pos, ref, alt) = variant
+            print(detail.format(chrom, pos, ref, alt), file=sys.stderr)
+
+        raise RuntimeError( msg.format(len(diff)) )
+
+    log("Successfully passed check")
 
 def merge(in_vcf, cadd_tsv):
     new_headers = annotation_info_headers()
