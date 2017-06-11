@@ -863,8 +863,8 @@ def annotation_LINSIGHT_lsf_params(email, queue):
         'u' : email,
         'N' : None,
         'q' : queue,
-        'M' : 24000000,
-        'R' : 'select[mem>24000 && ncpus>8] rusage[mem=24000]',
+        'M' : 28000000,
+        'R' : 'select[mem>28000 && ncpus>8] rusage[mem=28000]',
     }
 
 def annotation_LCR(in_vcf, in_chrom, out_vcf, out_log):
