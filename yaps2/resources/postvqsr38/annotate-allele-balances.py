@@ -54,7 +54,7 @@ def update_variant(variant, het_ab, het_hom_alt_ab, total_het_count, total_het_h
     return variant
 
 def annotate_allelic_balance(vcffile, region):
-    vcf = VCF(vcffile, missingness=True)
+    vcf = VCF(vcffile, strict_gt=True)
 
     header_hetab_param_info = {
         'ID' : 'HetAB',
