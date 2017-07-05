@@ -19,7 +19,7 @@ clean:
 docs: check-sphinx
 	git checkout -b gh-pages origin/gh-pages
 	rm -rf build _sources _static
-	git checkout doc-setup $(GH_PAGES_SOURCES)
+	git checkout master $(GH_PAGES_SOURCES)
 	git reset HEAD
 	cd docs && $(MAKE) --debug html && cd -
 	mv -fv docs/build/html/* ./
