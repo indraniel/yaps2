@@ -1,4 +1,4 @@
-.PHONY: init test clean docs check-sphinx
+.PHONY: init test clean docs docs-test clean-docs-test check-sphinx
 
 SHELL                     := /bin/bash
 SPHINX                    := $(shell which sphinx-build)
@@ -32,6 +32,12 @@ docs: check-sphinx
 		-m "Full commit: $(MASTER_HEAD_COMMIT)"
 	git push origin gh-pages
 	git checkout master
+
+docs-test:
+	cd docs && $(MAKE) --debug html && cd -
+
+clean-docs-test:
+	cd docs && rm -rf build && cd -
 
 check-sphinx:
 ifndef SPHINX
