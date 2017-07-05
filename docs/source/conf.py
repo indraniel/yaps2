@@ -89,12 +89,23 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'github_user' : 'indraniel',
+    'github_repo' : 'yaps2',
+    'github_button' : 'true',
+    'github_count' : False,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
+
+# See: http://www.sphinx-doc.org/en/stable/config.html#confval-html_sidebars
+html_sidebars = {
+#    '**': ['about.html', 'genindex.html', 'searchbox.html']
+    '**': ['about.html', 'localtoc.html', 'searchbox.html']
+}
 
 
 # -- Options for HTMLHelp output ------------------------------------------
