@@ -1012,7 +1012,7 @@ def filter_variant_missingness(in_vcf, in_chrom, out_vcf, out_log):
     }
     cmd_args = merge_params(default, args)
 
-    if in_chrom.startswith('Y') or in_chrom.startswith('y'):
+    if in_chrom.startswith('chrY') or in_chrom.startswith('chry'):
         cmd_args['out_vcf'] = os.path.dirname(out_vcf)
         cmd = "/bin/cp -v {in_vcf}* {out_vcf} >{out_log} 2>&1".format(**cmd_args)
     else:
