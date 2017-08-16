@@ -755,7 +755,7 @@ def bcftools_stats_lsf_params(email, queue):
 def concatenate_vcfs(in_vcfs, in_chrom, out_vcf, out_log):
     args = locals()
     default = {
-        'bcftools' : '/gscmnt/gc2802/halllab/idas/software/local/bin/bcftools1.4',
+        'main_script' : pkg_resources.resource_filename('yaps2', 'resources/postvqsr38/concatenate-partitioned-chromosome-vcfs.sh'),
     }
 
     cmd_args = merge_params(default, args)
@@ -767,10 +767,9 @@ def concatenate_vcfs(in_vcfs, in_chrom, out_vcf, out_log):
                 "2>&1").format(**cmd_args)
     else:
         cmd_args['in_vcfs'] = ' '.join([ x for x in in_vcfs if not empty_gzipped_vcf(x) ])
-        cmd = ( "{bcftools} concat "
-                "-a "
+        cmd = ( "{main_script} "
+                "-m {out_vcf} "
                 "{in_vcfs} "
-                "-O z -o {out_vcf}"
                 ">{out_log} "
                 "2>&1").format(**cmd_args)
     return cmd
