@@ -66,6 +66,11 @@ function parse_args {
     fi
     log "final_merged_vcf is: '${final_merged_vcf}'"
     log "input vcfs are: '${@}'"
+    local count=1
+    for f in ${@}; do
+        log "${count} : ${f}"
+        count=$((count + 1))
+    done
 
     # returning bash associative array from function trick:
     # http://notes-matthewlmcclure.blogspot.com/2009/12/return-array-from-bash-function-v-2.html
@@ -86,13 +91,10 @@ function tabix_and_finalize_vcf {
 
 function merge {
     local params_string=$@
-#    string="local -A params=${params_string}"
-#    eval "${string}"
     eval "local -A params=${params_string}"
     local out_vcf=${params[final_merged_vcf]}
     local tmp_vcf=${out_vcf}.tmp
     local input_vcfs=${params[input_vcfs]}
-#    echo "final vcf will be: ${params[final_merged_vcf]}"
 
     if [[ -e "${out_vcf}" ]]; then
         log "merged vcf already exists -- shortcutting merging"
