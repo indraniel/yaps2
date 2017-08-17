@@ -143,6 +143,7 @@ function run_vep {
             --fork 12 \
             --cache \
             --dir_cache ${vep_cache} \
+            --cache_version 88 \
             --sift b  \
             --polyphen b  \
             --species homo_sapiens  \
