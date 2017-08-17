@@ -98,6 +98,8 @@ class Pipeline(object):
         annotate_1000G_tasks = self.create_1000G_annotation_tasks(allele_balance_annotation_tasks, 6)
         # 7. annotate with gnomAD
         annotate_gnomAD_tasks = self.create_gnomAD_annotation_tasks(annotate_1000G_tasks, 7)
+        # 7.1 intermediate VCF concatenation
+        intermediate_concatenated_vcfs = self.create_concatenate_vcfs_task(annotate_gnomAD_tasks, "7.1")
         # 8. VEP annotation
         annotate_vep_tasks = self.create_vep_annotation_tasks(annotate_gnomAD_tasks, 8)
         # 9. CADD annotation
