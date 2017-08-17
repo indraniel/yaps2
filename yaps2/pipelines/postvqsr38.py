@@ -37,9 +37,9 @@ class Config(object):
         lsf_out = subprocess.check_output(cmd, shell=True)
         all_job_groups = { i for i in lsf_out.split("\n") if i != '' }
         if job_group not in all_job_groups:
-            msg = ("[err] Did not find {} in all known LSF job groups. "
-                   "See 'bjgroups -s'")
-            raise(RuntimeError(msg.format(jg)))
+            msg = ("[err] Did not find LSF job group '{}' in LSF. "
+                   "See 'bjgroup -s'")
+            raise(RuntimeError(msg.format(job_group)))
 
     def ensure_rootdir(self):
         if not os.path.exists(self.rootdir):
