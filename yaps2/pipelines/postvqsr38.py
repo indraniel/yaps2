@@ -1,19 +1,23 @@
-import os, pwd, sys
+import os, pwd, sys, subprocess
 import pkg_resources
 from itertools import groupby
 from cosmos.api import Cosmos, Dependency, default_get_submit_args
 from yaps2.utils import to_json, merge_params, natural_key, empty_gzipped_vcf, get_chrom_number, Region
 
 class Config(object):
-    def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker, queue):
+    def __init__(self, job_db, input_vcf_list, project_name, email, workspace, docker, queue, drm_job_group):
         self.email = email
         self.db = job_db
         self.project_name = project_name
         self.rootdir = workspace
         self.docker = docker
         self.drm_queue = queue
+        self.drm_job_group = drm_job_group
 
         self.ensure_rootdir()
+
+        if self.drm_job_group:
+            self.ensure_job_group_exists()
 
         if self.email is None:
             self.email = self.setup_email()
@@ -26,6 +30,16 @@ class Config(object):
 
         self.vcfs = self.collect_input_vcfs(input_vcf_list)
         self.chroms = self.get_ordered_chroms()
+
+    def ensure_job_group_exists(self):
+        job_group = self.drm_job_group
+        cmd = "bjgroup -s | tail -n +2 | awk -v OFS=\"\t\" '$1=$1' | cut -f 1"
+        lsf_out = subprocess.check_output(cmd, shell=True)
+        all_job_groups = { i for i in lsf_out.split("\n") if i != '' }
+        if job_group not in all_job_groups:
+            msg = ("[err] Did not find {} in all known LSF job groups. "
+                   "See 'bjgroups -s'")
+            raise(RuntimeError(msg.format(jg)))
 
     def ensure_rootdir(self):
         if not os.path.exists(self.rootdir):
@@ -128,9 +142,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 bcftools_stats_summary_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -156,9 +168,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 concatenate_vcfs_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -200,9 +210,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 variant_eval_summary_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -228,9 +236,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 bcftools_stats_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -260,9 +266,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 gatk_variant_eval_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -294,9 +298,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 annotation_LINSIGHT_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -328,9 +330,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 annotation_LCR_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -362,9 +362,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 annotation_cadd_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -396,9 +394,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 annotation_vep_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -430,9 +426,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 annotation_gnomAD_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -464,9 +458,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 annotation_1000G_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -498,9 +490,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 annotate_allele_balances_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -532,9 +522,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 filter_variant_missingness_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -566,9 +554,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 remove_symbolic_deletion_alleles_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -600,9 +586,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 normalize_decompose_unique_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -635,9 +619,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 calculate_sample_missingness_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -664,9 +646,7 @@ class Pipeline(object):
 
         lsf_params = get_lsf_params(
                 count_sample_missingness_lsf_params,
-                self.config.email,
-                self.config.docker,
-                self.config.drm_queue
+                self.config
         )
         lsf_params_json = to_json(lsf_params)
 
@@ -699,13 +679,23 @@ class Pipeline(object):
         return task_name
 
 # C M D S #####################################################################
-def get_lsf_params(task_lsf_fn, email, docker, queue):
+def get_lsf_params(task_lsf_fn, config):
+    email = config.email
+    docker = config.docker
+    queue = config.drm_queue
+    job_group = config.drm_job_group
+
     lsf_params = task_lsf_fn(email, queue)
+
+    if job_group and ('g' not in lsf_params):
+        lsf_params['g'] = job_group
+
     if docker and (lsf_params['q'] != 'research-hpc'):
         lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment:23)'"
         lsf_params['q'] = "research-hpc"
         lsf_params['M'] = 16000000
         lsf_params['R'] = 'select[mem>10000 && ncpus>8] rusage[mem=16000]'
+
     return lsf_params
 
 def bcftools_stats_summary(in_dir, out_dir):
