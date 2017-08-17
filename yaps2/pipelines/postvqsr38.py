@@ -693,8 +693,10 @@ def get_lsf_params(task_lsf_fn, config):
     if docker and (lsf_params['q'] != 'research-hpc'):
         lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment:23)'"
         lsf_params['q'] = "research-hpc"
-        lsf_params['M'] = 16000000
-        lsf_params['R'] = 'select[mem>10000 && ncpus>8] rusage[mem=16000]'
+        current_memory_request = lsf_params.get('M', 0)
+        if current_memory_request < 16000000:
+            lsf_params['M'] = 16000000
+            lsf_params['R'] = 'select[mem>10000 && ncpus>8] rusage[mem=16000]'
 
     return lsf_params
 
