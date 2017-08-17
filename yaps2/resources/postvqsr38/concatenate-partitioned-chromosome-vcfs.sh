@@ -101,6 +101,11 @@ function merge {
         return 0;
     fi
 
+    if [[ ${#input_vcfs} == 0 ]]; then
+        die "[err] Did not find any input vcfs to merge!"
+        exit 1
+    fi
+
     log "(merge) calling bcftools concat"
     local cmd="
     ${BCFTOOLS} concat \
