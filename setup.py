@@ -21,11 +21,11 @@ setup(
     license=license,
     url='https://github.com/indraniel/yaps2',
     dependency_links=[
-        'https://github.com/indraniel/COSMOS2/tarball/enable-lsf-rebase#egg=cosmos-wfm-2.0.10.indraniel4',
+        'https://github.com/indraniel/COSMOS2/tarball/enable-lsf-rebase#egg=cosmos-wfm-2.0.10.indraniel5',
         'https://github.com/brentp/cyvcf2/tarball/cb8104c196a7f98f7128f39becd99ef829ecf14d#egg=cyvcf2-0.7.7',
     ],
     install_requires=[
-        'cosmos-wfm==2.0.10.indraniel4',
+        'cosmos-wfm==2.0.10.indraniel5',
         'click==6.7',
         'clint==0.5.1',
         'matplotlib==1.5.3',
