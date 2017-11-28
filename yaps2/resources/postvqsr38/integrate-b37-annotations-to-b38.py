@@ -481,7 +481,7 @@ def create_b37_annotation_dictionary(b37_vcf, annotation_type, update_id_flag):
         pos_b38 = variant.INFO.get('OriginalStart')
 	for f in fields:
             value = variant.INFO.get(f, '.')
-            field_data[f] = value if value else '.'
+            field_data[f] = value if (value or (value == 0)) else '.'
 
         if update_id_flag and (variant.ID is not None):
             field_data['ID'] = variant.ID
