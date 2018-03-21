@@ -59,8 +59,8 @@ def postvqsr(job_db, input_vcfs, project_name, email, workspace, drm, queue, res
               help='Job Mode -- [default=lsf]')
 @click.option('--drm-job-group', default=None, type=click.STRING,
               help='An LSF job group to control cluster usage')
-@click.option('--queue', default='long', type=click.STRING,
-              help='The LSF queue to submit jobs into [default=long]')
+@click.option('--queue', default='ccdg', type=click.STRING,
+              help='The LSF queue to submit jobs into [default=ccdg]')
 @click.option('--restart/--no-restart', default=False,
               help='Restart Pipeline from scratch')
 @click.option('--docker/--no-docker', default=False,

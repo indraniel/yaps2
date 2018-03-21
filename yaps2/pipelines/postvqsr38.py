@@ -690,9 +690,9 @@ def get_lsf_params(task_lsf_fn, config):
     if job_group and ('g' not in lsf_params):
         lsf_params['g'] = job_group
 
-    if docker and (lsf_params['q'] != 'research-hpc'):
+    if docker and (lsf_params['q'] != 'ccdg'):
         lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment:23)'"
-        lsf_params['q'] = "research-hpc"
+        lsf_params['q'] = "ccdg"
         current_memory_request = lsf_params.get('M', 0)
         if current_memory_request < 16000000:
             lsf_params['M'] = 16000000
@@ -923,7 +923,7 @@ def annotation_vep_lsf_params(email, queue):
         'u' : email,
         'N' : None,
         'a' : "'docker(willmclaren/ensembl-vep:release_88)'",
-        'q' : 'research-hpc',
+        'q' : 'ccdg',
         'M' : 68000000,
         'R' : 'select[mem>60000 && ncpus>8] rusage[mem=68000]',
     }
