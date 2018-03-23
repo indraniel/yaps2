@@ -690,9 +690,10 @@ def get_lsf_params(task_lsf_fn, config):
     if job_group and ('g' not in lsf_params):
         lsf_params['g'] = job_group
 
-    if docker and (lsf_params['q'] not in ('ccdg', 'research-hpc')):
+    if docker and ('a' not in lsf_params):
         lsf_params['a'] = "'docker(registry.gsc.wustl.edu/genome/genome_perl_environment:23)'"
-        lsf_params['q'] = "ccdg"
+        if lsf_params['q'] not in ('ccdg', 'research-hpc'):
+            lsf_params['q'] = "ccdg"
         current_memory_request = lsf_params.get('M', 0)
         if current_memory_request < 16000000:
             lsf_params['M'] = 16000000
