@@ -51,7 +51,7 @@ def merge_stats(vcfstats, totals):
         # error out if there are samples in the overall total dictionary
         # that are not in the individual vcf stats
         error_samples = [sample for sample in totalc if sample not in vcfc]
-        if len(error_samples > 0):
+        if len(error_samples) > 0:
             msg = ( '[err] The following {} samples are unaccounted for. '
                     'Please investigate!\n{}\n' )
             sys.exit(msg.format(len(error_samples), error_samples))
